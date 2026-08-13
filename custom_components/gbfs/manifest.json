@@ -1,0 +1,12 @@
+{
+  "domain": "gbfs",
+  "name": "GBFS",
+  "codeowners": ["@blunan"],
+  "config_flow": true,
+  "documentation": "https://github.com/blunan/gbfs-home-assistant-integration",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/blunan/gbfs-home-assistant-integration/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
