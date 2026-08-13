@@ -1,0 +1,73 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Feed GBFS",
+        "description": "Ingresa la URL de auto-discovery del sistema de bicicletas compartidas (gbfs.json).",
+        "data": {
+          "url": "URL de gbfs.json"
+        },
+        "data_description": {
+          "url": "Por ejemplo: https://gbfs.mex.lyftbikes.com/gbfs/gbfs.json"
+        }
+      },
+      "stations": {
+        "title": "Selecciona estaciones",
+        "description": "Cada estación seleccionada se convierte en un device con sus propios sensores.",
+        "data": {
+          "stations": "Estaciones"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No se pudo conectar al feed",
+      "invalid_feed": "La URL no apunta a un feed GBFS válido"
+    },
+    "abort": {
+      "already_configured": "Este feed GBFS ya está configurado"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Selecciona estaciones",
+        "data": {
+          "stations": "Estaciones"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "bikes_available": {
+        "name": "Bicis disponibles"
+      },
+      "ebikes_available": {
+        "name": "Bicis eléctricas disponibles"
+      },
+      "bikes_disabled": {
+        "name": "Bicis fuera de servicio"
+      },
+      "docks_available": {
+        "name": "Docks disponibles"
+      },
+      "docks_disabled": {
+        "name": "Docks fuera de servicio"
+      },
+      "occupancy": {
+        "name": "Ocupación"
+      },
+      "last_reported": {
+        "name": "Último reporte"
+      }
+    },
+    "binary_sensor": {
+      "is_renting": {
+        "name": "Rentando"
+      },
+      "is_returning": {
+        "name": "Recibiendo"
+      }
+    }
+  }
+}
