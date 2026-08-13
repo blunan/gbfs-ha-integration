@@ -1,0 +1,10 @@
+{
+  "last_updated": 1786131348,
+  "ttl": 10,
+  "data": {
+    "system_id": "example_bikes",
+    "name": "Example Bikes",
+    "timezone": "America/Mexico_City",
+    "language": "en"
+  }
+}

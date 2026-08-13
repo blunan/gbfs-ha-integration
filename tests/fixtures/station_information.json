@@ -1,0 +1,37 @@
+{
+  "last_updated": 1786131348,
+  "ttl": 10,
+  "data": {
+    "stations": [
+      {
+        "station_id": "1",
+        "external_id": "e961269c-34c4-4b70-8e30-a51aa95a8429",
+        "name": "Station Alpha",
+        "short_name": "710",
+        "lat": 19.416795,
+        "lon": -99.192508,
+        "rental_methods": ["CREDITCARD", "KEY"],
+        "capacity": 39,
+        "has_kiosk": true
+      },
+      {
+        "station_id": "2",
+        "name": "Station Beta",
+        "short_name": "711",
+        "lat": 19.42,
+        "lon": -99.19,
+        "capacity": 25,
+        "has_kiosk": true
+      },
+      {
+        "station_id": "3",
+        "name": "Station Gamma",
+        "short_name": "712",
+        "lat": 19.43,
+        "lon": -99.18,
+        "capacity": 20,
+        "has_kiosk": false
+      }
+    ]
+  }
+}
