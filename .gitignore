@@ -1,0 +1,14 @@
+# Home Assistant dev config (scripts/develop) — Only configuration.yaml is versioned
+config/*
+!config/configuration.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.coverage

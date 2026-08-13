@@ -1,0 +1,4 @@
+ruff
+colorlog
+homeassistant
+pytest-homeassistant-custom-component
