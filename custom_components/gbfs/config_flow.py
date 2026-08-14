@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 import voluptuous as vol
 
@@ -31,6 +31,15 @@ from .const import (
     InvalidFeed,
 )
 from .coordinator import GbfsConfigEntry, async_fetch_json, resolve_feeds
+
+
+def _normalize_url(url: str) -> str:
+    """Normalized feed URL for the entry's unique_id (scheme/host are case-insensitive)."""
+    parts = urlparse(url)
+    return urlunparse(
+        parts._replace(scheme=parts.scheme.lower(), netloc=parts.netloc.lower())
+    ).rstrip("/")
+
 
 USER_SCHEMA = vol.Schema(
     {
@@ -83,7 +92,7 @@ class GbfsConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             url = user_input[CONF_URL].strip()
-            await self.async_set_unique_id(url.rstrip("/"))
+            await self.async_set_unique_id(_normalize_url(url))
             self._abort_if_unique_id_configured()
 
             session = async_get_clientsession(self.hass)
