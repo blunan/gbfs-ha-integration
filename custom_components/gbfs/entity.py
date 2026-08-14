@@ -31,7 +31,7 @@ class GbfsEntity(CoordinatorEntity[GbfsCoordinator]):
         )
         info = coordinator.station_info.get(station_id, {})
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, station_id)},
+            identifiers={(DOMAIN, f"{coordinator.config_entry.entry_id}_{station_id}")},
             name=info.get("name", f"Station {station_id}"),
             manufacturer="GBFS",
             model="Bike share station",
