@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from custom_components.gbfs.const import DOMAIN
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 from homeassistant.util import dt as dt_util
 
 from .conftest import FEED_BASE, load_json_fixture
@@ -84,6 +86,22 @@ async def test_ebikes_sensor_created_when_feed_publishes_it(
     # conditional sensors are not created
     assert hass.states.get("sensor.station_alpha_bikes_disabled") is None
     assert hass.states.get("sensor.station_alpha_docks_disabled") is None
+
+
+async def test_device_identifiers_scoped_per_entry(
+    hass: HomeAssistant, mock_feeds, config_entry
+) -> None:
+    """Device identifiers include the entry_id: two feeds with the same station_id do not collide."""
+    await _setup(hass, config_entry)
+
+    device_registry = dr.async_get(hass)
+    device = device_registry.async_get_device(
+        identifiers={(DOMAIN, f"{config_entry.entry_id}_1")}
+    )
+    assert device is not None
+    assert device.name == "Station Alpha"
+    # The unscoped identifier (previous format) must not exist
+    assert device_registry.async_get_device(identifiers={(DOMAIN, "1")}) is None
 
 
 async def test_binary_sensors(hass: HomeAssistant, mock_feeds, config_entry) -> None:

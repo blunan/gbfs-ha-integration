@@ -77,6 +77,20 @@ async def test_already_configured(
     assert result["reason"] == "already_configured"
 
 
+async def test_already_configured_normalizes_url(
+    hass: HomeAssistant, mock_feeds, config_entry
+) -> None:
+    """URL variants (host/scheme casing, trailing slash) dedupe against the same feed."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {CONF_URL: "HTTPS://GBFS.EXAMPLE.COM/gbfs/gbfs.json/"}
+    )
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
+
+
 async def test_options_flow(hass: HomeAssistant, mock_feeds, config_entry) -> None:
     """The options flow allows changing the selected stations."""
     assert await hass.config_entries.async_setup(config_entry.entry_id)
