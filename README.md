@@ -107,6 +107,7 @@ The container uses Python 3.13 (matching current Home Assistant), forwards port 
 │   ├─ sensor.py               # Bikes, e-bikes, docks, occupancy, last report
 │   ├─ binary_sensor.py        # Renting / returning
 │   ├─ diagnostics.py          # Config entry diagnostics download
+│   ├─ brand/                  # Integration icon (HA 2026.3+ local brand images)
 │   ├─ strings.json            # UI strings
 │   └─ translations/           # en, es
 ├─ tests/                      # pytest suite with real-feed fixtures
