@@ -1,6 +1,6 @@
 {
   "name": "gbfs-ha-integration-devcontainer",
-  "image": "mcr.microsoft.com/devcontainers/python:3.13",
+  "image": "mcr.microsoft.com/devcontainers/python:3.14-trixie",
   "forwardPorts": [
     8123
   ],

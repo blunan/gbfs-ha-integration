@@ -105,7 +105,7 @@ class GbfsConfigFlow(ConfigFlow, domain=DOMAIN):
                     raise InvalidFeed("station_information.json has no stations")
             except CannotConnect:
                 errors["base"] = "cannot_connect"
-            except (InvalidFeed, KeyError, TypeError):
+            except InvalidFeed, KeyError, TypeError:
                 errors["base"] = "invalid_feed"
             else:
                 self._url = url

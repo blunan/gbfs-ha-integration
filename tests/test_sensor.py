@@ -95,13 +95,18 @@ async def test_device_identifiers_scoped_per_entry(
     await _setup(hass, config_entry)
 
     device_registry = dr.async_get(hass)
-    device = device_registry.async_get_device(
-        identifiers={(DOMAIN, f"{config_entry.entry_id}_1")}
+    device = device_registry.async_get_device_by_identifier(
+        (DOMAIN, f"{config_entry.entry_id}_1"), config_entry.entry_id
     )
     assert device is not None
     assert device.name == "Station Alpha"
     # The unscoped identifier (previous format) must not exist
-    assert device_registry.async_get_device(identifiers={(DOMAIN, "1")}) is None
+    assert (
+        device_registry.async_get_device_by_identifier(
+            (DOMAIN, "1"), config_entry.entry_id
+        )
+        is None
+    )
 
 
 async def test_binary_sensors(hass: HomeAssistant, mock_feeds, config_entry) -> None:

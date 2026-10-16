@@ -2,8 +2,8 @@
 
 [![Test](https://github.com/blunan/gbfs-home-assistant-integration/actions/workflows/test.yml/badge.svg)](https://github.com/blunan/gbfs-home-assistant-integration/actions/workflows/test.yml)
 [![Validate](https://github.com/blunan/gbfs-home-assistant-integration/actions/workflows/validate.yml/badge.svg)](https://github.com/blunan/gbfs-home-assistant-integration/actions/workflows/validate.yml)
-![Home Assistant](https://img.shields.io/badge/home%20assistant-2026.2%2B-41BDF5)
-![Python](https://img.shields.io/badge/python-3.13-blue)
+![Home Assistant](https://img.shields.io/badge/home%20assistant-2026.3%2B-41BDF5)
+![Python](https://img.shields.io/badge/python-3.14-blue)
 ![GBFS](https://img.shields.io/badge/GBFS-1.x%20%7C%202.x%20%7C%203.0-green)
 ![HACS](https://img.shields.io/badge/HACS-custom-orange)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
@@ -77,7 +77,7 @@ The fastest way to get a zero-setup environment — no host-level Python or Home
 3. Wait for the container to build; dependencies install automatically via `scripts/setup`.
 4. `scripts/develop` → Home Assistant starts at the forwarded `http://localhost:8123` with the integration loaded from the repo.
 
-The container uses Python 3.13 (matching current Home Assistant), forwards port 8123, and pre-installs the Python, Ruff, GitLens, and Claude Code VSCode extensions.
+The container uses Python 3.14 (Debian trixie, matching current Home Assistant), forwards port 8123, and pre-installs the Python, Ruff, GitLens, and Claude Code VSCode extensions.
 
 ---
 
@@ -96,7 +96,7 @@ The container uses Python 3.13 (matching current Home Assistant), forwards port 
 
 ```
 /
-├─ .devcontainer/              # Dev container definition (Python 3.13, port 8123)
+├─ .devcontainer/              # Dev container definition (Python 3.14, port 8123)
 ├─ .github/workflows/          # CI: lint + pytest, hassfest & HACS validation
 ├─ config/                     # HA config used by scripts/develop
 ├─ custom_components/gbfs/
