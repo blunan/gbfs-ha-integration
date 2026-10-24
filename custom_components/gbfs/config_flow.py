@@ -24,6 +24,7 @@ from .const import (
     CONF_STATIONS,
     CONF_URL,
     DOMAIN,
+    EXAMPLE_URL,
     FEED_STATION_INFORMATION,
     FEED_SYSTEM_INFORMATION,
     CannotConnect,
@@ -120,7 +121,10 @@ class GbfsConfigFlow(ConfigFlow, domain=DOMAIN):
                 return await self.async_step_stations()
 
         return self.async_show_form(
-            step_id="user", data_schema=USER_SCHEMA, errors=errors
+            step_id="user",
+            data_schema=USER_SCHEMA,
+            errors=errors,
+            description_placeholders={"example_url": EXAMPLE_URL},
         )
 
     async def _async_system_name(self, session: Any, feeds: dict[str, str]) -> str:

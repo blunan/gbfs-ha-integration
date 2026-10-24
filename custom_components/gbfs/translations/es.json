@@ -8,7 +8,7 @@
           "url": "URL de gbfs.json"
         },
         "data_description": {
-          "url": "Por ejemplo: https://gbfs.mex.lyftbikes.com/gbfs/gbfs.json"
+          "url": "Por ejemplo: {example_url}"
         }
       },
       "stations": {

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import aiohttp
 
-from custom_components.gbfs.const import CONF_STATIONS, CONF_URL, DOMAIN
+from custom_components.gbfs.const import CONF_STATIONS, CONF_URL, DOMAIN, EXAMPLE_URL
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -19,6 +19,7 @@ async def test_full_flow(hass: HomeAssistant, mock_feeds) -> None:
     )
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "user"
+    assert result["description_placeholders"] == {"example_url": EXAMPLE_URL}
 
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {CONF_URL: GBFS_URL}

@@ -5,6 +5,8 @@ DOMAIN = "gbfs"
 CONF_URL = "url"
 CONF_STATIONS = "stations"
 
+EXAMPLE_URL = "https://gbfs.mex.lyftbikes.com/gbfs/gbfs.json"
+
 DEFAULT_SCAN_INTERVAL = 60
 
 FEED_STATION_INFORMATION = "station_information"
