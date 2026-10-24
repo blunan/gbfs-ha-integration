@@ -1,4 +1,6 @@
-ruff
-colorlog
-homeassistant
+ruff==0.17.2
+colorlog==6.12.0
+homeassistant==2026.10.2
+# Unpinned on purpose: each release pins one exact homeassistant version
+# (betas included), so pip installs the release matching the pin above.
 pytest-homeassistant-custom-component
