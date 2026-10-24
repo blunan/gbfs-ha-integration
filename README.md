@@ -1,7 +1,7 @@
 # GBFS – Bike-Share Integration for Home Assistant
 
-[![Test](https://github.com/blunan/gbfs-home-assistant-integration/actions/workflows/test.yml/badge.svg)](https://github.com/blunan/gbfs-home-assistant-integration/actions/workflows/test.yml)
-[![Validate](https://github.com/blunan/gbfs-home-assistant-integration/actions/workflows/validate.yml/badge.svg)](https://github.com/blunan/gbfs-home-assistant-integration/actions/workflows/validate.yml)
+[![Test](https://github.com/blunan/gbfs-ha-integration/actions/workflows/test.yml/badge.svg)](https://github.com/blunan/gbfs-ha-integration/actions/workflows/test.yml)
+[![Validate](https://github.com/blunan/gbfs-ha-integration/actions/workflows/validate.yml/badge.svg)](https://github.com/blunan/gbfs-ha-integration/actions/workflows/validate.yml)
 ![Home Assistant](https://img.shields.io/badge/home%20assistant-2026.3%2B-41BDF5)
 ![Python](https://img.shields.io/badge/python-3.14-blue)
 ![GBFS](https://img.shields.io/badge/GBFS-1.x%20%7C%202.x%20%7C%203.0-green)
