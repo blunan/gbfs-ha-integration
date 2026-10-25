@@ -2,35 +2,42 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    ":configMigration",
-    "helpers:pinGitHubActionDigests"
+    ":configMigration"
   ],
   "dependencyDashboard": true,
+  "timezone": "America/Mexico_City",
   "minimumReleaseAge": "14 days",
   "internalChecksFilter": "strict",
   "osvVulnerabilityAlerts": true,
-  "dependencyDashboardOSVVulnerabilitySummary": "all",
+  "dependencyDashboardOSVVulnerabilitySummary": "unresolved",
+  "automerge": false,
   "platformAutomerge": false,
-  "automergeStrategy": "squash",
   "packageRules": [
     {
-      "description": "Automerge non-major updates once every CI check passes. Renovate merges them itself (platformAutomerge is off), so it waits for all checks, not just the ones the main ruleset requires",
-      "matchUpdateTypes": ["minor", "patch", "digest", "pinDigest"],
-      "automerge": true
+      "description": "Group and schedule minor and patch updates for Monday early mornings (excluding GitHub Actions and Python, which have their own rules)",
+      "matchManagers": ["!github-actions"],
+      "matchPackageNames": ["!python", "!mcr.microsoft.com/devcontainers/python"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "minor and patch dependencies",
+      "schedule": ["* 0-5 * * 1"]
     },
     {
-      "description": "hassfest and the HACS action pull floating images to validate against the latest rules, so pinning them adds nothing",
+      "description": "Pin digests, group, and schedule GitHub Actions updates for Monday early mornings. Excludes setup-python's python-version and floating hassfest/HACS actions",
       "matchManagers": ["github-actions"],
-      "matchDepNames": ["home-assistant/actions", "hacs/action"],
-      "pinDigests": false
+      "matchPackageNames": [
+        "!python",
+        "!home-assistant/actions",
+        "!hacs/action"
+      ],
+      "pinDigests": true,
+      "groupName": "GitHub Actions",
+      "schedule": ["* 0-5 * * 1"]
     },
     {
-      "description": "Python upgrades need Home Assistant support first: approve them from the Dependency Dashboard and bump target-version in pyproject.toml in the same PR",
-      "matchDepNames": ["python", "mcr.microsoft.com/devcontainers/python"],
+      "description": "Python upgrades need Home Assistant support first: bump target-version in pyproject.toml in the same PR",
+      "matchPackageNames": ["python", "mcr.microsoft.com/devcontainers/python"],
       "matchUpdateTypes": ["major", "minor"],
-      "groupName": "Python",
-      "dependencyDashboardApproval": true,
-      "automerge": false
+      "groupName": "Python"
     },
     {
       "description": "MCR publishes no release timestamps, so the minimum release age could never be met",
