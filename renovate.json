@@ -4,12 +4,9 @@
     "config:recommended",
     ":configMigration"
   ],
-  "dependencyDashboard": true,
   "timezone": "America/Mexico_City",
   "minimumReleaseAge": "14 days",
   "internalChecksFilter": "strict",
-  "osvVulnerabilityAlerts": true,
-  "dependencyDashboardOSVVulnerabilitySummary": "unresolved",
   "automerge": false,
   "platformAutomerge": false,
   "packageRules": [
@@ -18,7 +15,7 @@
       "matchManagers": ["!github-actions"],
       "matchPackageNames": ["!python", "!mcr.microsoft.com/devcontainers/python"],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "minor and patch dependencies",
+      "groupName": "Minor and patch dependencies",
       "schedule": ["* 0-5 * * 1"]
     },
     {
