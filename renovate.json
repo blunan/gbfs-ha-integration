@@ -2,6 +2,8 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
+    "group:allNonMajor",
+    "schedule:weekly",
     ":configMigration"
   ],
   "timezone": "America/Mexico_City",
@@ -11,33 +13,22 @@
   "platformAutomerge": false,
   "packageRules": [
     {
-      "description": "Group and schedule minor and patch updates for Monday early mornings (excluding GitHub Actions and Python, which have their own rules)",
-      "matchManagers": ["!github-actions"],
-      "matchPackageNames": ["!python", "!mcr.microsoft.com/devcontainers/python"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "Minor and patch dependencies",
-      "schedule": ["* 0-5 * * 1"]
-    },
-    {
-      "description": "Pin digests, group, and schedule GitHub Actions updates for Monday early mornings. Excludes setup-python's python-version and floating hassfest/HACS actions",
+      "description": "Pin GitHub Actions to immutable digests",
       "matchManagers": ["github-actions"],
-      "matchPackageNames": [
-        "!python",
-        "!home-assistant/actions",
-        "!hacs/action"
-      ],
       "pinDigests": true,
-      "groupName": "GitHub Actions",
-      "schedule": ["* 0-5 * * 1"]
+      "groupName": "GitHub Actions"
     },
     {
       "description": "Python upgrades need Home Assistant support first: bump target-version in pyproject.toml in the same PR",
-      "matchPackageNames": ["python", "mcr.microsoft.com/devcontainers/python"],
+      "matchPackageNames": [
+        "python",
+        "mcr.microsoft.com/devcontainers/python"
+      ],
       "matchUpdateTypes": ["major", "minor"],
       "groupName": "Python"
     },
     {
-      "description": "MCR publishes no release timestamps, so the minimum release age could never be met",
+      "description": "MCR does not publish release timestamps",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["mcr.microsoft.com/**"],
       "minimumReleaseAgeBehaviour": "timestamp-optional"
