@@ -60,7 +60,7 @@ SENSORS: tuple[GbfsSensorEntityDescription, ...] = (
         translation_key="ebikes_available",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda station: station.ebikes_available,
-        # Not in the GBFS spec: only if the feed publishes it
+        # Only if the feed counts e-bikes, directly or by vehicle type
         optional=True,
     ),
     GbfsSensorEntityDescription(

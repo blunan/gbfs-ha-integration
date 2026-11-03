@@ -1,0 +1,38 @@
+{
+  "last_updated": "2026-08-04T10:15:48Z",
+  "ttl": 3600,
+  "version": "3.0",
+  "data": {
+    "vehicle_types": [
+      {
+        "vehicle_type_id": "classic",
+        "form_factor": "bicycle",
+        "propulsion_type": "human",
+        "name": [
+          { "text": "Classic bike", "language": "en" },
+          { "text": "Bici clásica", "language": "es" }
+        ]
+      },
+      {
+        "vehicle_type_id": "ebike",
+        "form_factor": "bicycle",
+        "propulsion_type": "electric_assist",
+        "max_range_meters": 40000,
+        "name": [
+          { "text": "E-bike", "language": "en" },
+          { "text": "Bici eléctrica", "language": "es" }
+        ]
+      },
+      {
+        "vehicle_type_id": "escooter",
+        "form_factor": "scooter_standing",
+        "propulsion_type": "electric",
+        "max_range_meters": 20000,
+        "name": [
+          { "text": "E-scooter", "language": "en" },
+          { "text": "Scooter eléctrico", "language": "es" }
+        ]
+      }
+    ]
+  }
+}

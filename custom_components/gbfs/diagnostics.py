@@ -26,6 +26,7 @@ async def async_get_config_entry_diagnostics(
         ),
         "last_update_success": coordinator.last_update_success,
         "published_fields": sorted(coordinator.published_fields),
+        "ebike_vehicle_types": sorted(coordinator.ebike_types),
         "station_info": coordinator.station_info,
         "station_status": coordinator.raw_status,
     }

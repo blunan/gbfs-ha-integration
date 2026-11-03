@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -11,13 +12,14 @@ import pytest
 from custom_components.gbfs.const import InvalidFeed
 from custom_components.gbfs.coordinator import (
     StationStatus,
+    ebike_type_ids,
     localized_text,
     parse_timestamp,
     resolve_feeds,
 )
 from homeassistant.core import HomeAssistant
 
-from .conftest import FEED_BASE, load_json_fixture
+from .conftest import FEED_BASE, FEED_BASE_V3, load_json_fixture, mock_v3_feeds
 
 NAMES = [
     {"text": "Station Alpha", "language": "en"},
@@ -45,6 +47,9 @@ def test_resolve_feeds_v3() -> None:
     feeds = resolve_feeds(load_json_fixture("gbfs_v3.json"), "es")
     assert feeds["station_status"] == (
         "https://gbfs.example.com/gbfs/3.0/station_status.json"
+    )
+    assert feeds["vehicle_types"] == (
+        "https://gbfs.example.com/gbfs/3.0/vehicle_types.json"
     )
 
 
@@ -111,11 +116,19 @@ def test_parse_timestamp(value: Any, expected: datetime | None) -> None:
     assert parse_timestamp(value) == expected
 
 
+def test_ebike_type_ids() -> None:
+    """E-bikes are electric bicycles: e-scooters and classic bikes don't count."""
+    assert ebike_type_ids(load_json_fixture("vehicle_types_v3.json")) == {"ebike"}
+    assert ebike_type_ids({}) == set()
+    assert ebike_type_ids({"data": {"vehicle_types": "nope"}}) == set()
+
+
 def test_station_status_same_across_versions() -> None:
     """A GBFS 2.x station and its 3.0 equivalent read the same."""
     v2 = {
         "station_id": "1",
         "num_bikes_available": 9,
+        "num_ebikes_available": 3,
         "num_bikes_disabled": 2,
         "num_docks_available": 30,
         "num_docks_disabled": 1,
@@ -129,12 +142,17 @@ def test_station_status_same_across_versions() -> None:
         "num_vehicles_disabled": 2,
         "num_docks_available": 30,
         "num_docks_disabled": 1,
+        "vehicle_types_available": [
+            {"vehicle_type_id": "classic", "count": 6},
+            {"vehicle_type_id": "ebike", "count": 3},
+        ],
         "is_renting": True,
         "is_returning": False,
         "last_reported": "2026-08-07T19:31:55Z",
     }
     expected = StationStatus(
         bikes_available=9,
+        ebikes_available=3,
         bikes_disabled=2,
         docks_available=30,
         docks_disabled=1,
@@ -142,8 +160,16 @@ def test_station_status_same_across_versions() -> None:
         is_returning=False,
         last_reported=datetime(2026, 8, 7, 19, 31, 55, tzinfo=UTC),
     )
-    assert StationStatus.from_feed(v2) == expected
-    assert StationStatus.from_feed(v3) == expected
+    assert StationStatus.from_feed(v2, set()) == expected
+    assert StationStatus.from_feed(v3, {"ebike"}) == expected
+
+    # num_ebikes_available wins over counting by vehicle type
+    with_both = {**v3, "num_ebikes_available": 4}
+    assert StationStatus.from_feed(with_both, {"ebike"}) == replace(
+        expected, ebikes_available=4
+    )
+    # Without e-bike vehicle types, e-bikes are unknown
+    assert StationStatus.from_feed(v3, set()).ebikes_available is None
 
 
 async def test_coordinator_setup(hass: HomeAssistant, mock_feeds, config_entry) -> None:
@@ -158,6 +184,8 @@ async def test_coordinator_setup(hass: HomeAssistant, mock_feeds, config_entry) 
     assert coordinator.station_name("1") == "Station Alpha"
     assert "num_ebikes_available" not in coordinator.published_fields
     assert "num_bikes_disabled" in coordinator.published_fields
+    # The feed has no vehicle types
+    assert coordinator.ebike_types == set()
     # Feed ttl (10s) is less than default interval: stays at 60s
     assert coordinator.update_interval == timedelta(seconds=60)
 
@@ -165,15 +193,35 @@ async def test_coordinator_setup(hass: HomeAssistant, mock_feeds, config_entry) 
 async def test_coordinator_setup_v3(
     hass: HomeAssistant, mock_feeds_v3, config_entry_v3
 ) -> None:
-    """GBFS 3.0: translated names and renamed fields."""
+    """GBFS 3.0: vehicle types, translated names and renamed fields."""
     assert await hass.config_entries.async_setup(config_entry_v3.entry_id)
     await hass.async_block_till_done()
 
     coordinator = config_entry_v3.runtime_data
+    assert coordinator.ebike_types == {"ebike"}
     assert coordinator.data["1"].bikes_available == 9
+    assert coordinator.data["1"].ebikes_available == 3
     assert coordinator.station_name("1") == "Station Alpha"
     # Only published in Spanish: falls back to it
     assert coordinator.station_name("3") == "Estación Gamma"
+
+
+async def test_coordinator_vehicle_types_unavailable(
+    hass: HomeAssistant, aioclient_mock, config_entry_v3, caplog
+) -> None:
+    """vehicle_types.json is optional: if it fails, the entry loads without it."""
+    mock_v3_feeds(aioclient_mock, skip=("vehicle_types",))
+    aioclient_mock.get(f"{FEED_BASE_V3}/vehicle_types.json", status=500)
+
+    assert await hass.config_entries.async_setup(config_entry_v3.entry_id)
+    await hass.async_block_till_done()
+
+    coordinator = config_entry_v3.runtime_data
+    assert coordinator.ebike_types == set()
+    assert coordinator.data["1"].ebikes_available is None
+    assert "Not counting e-bikes by vehicle type" in caplog.text
+    assert hass.states.get("sensor.station_alpha_e_bikes_available") is None
+    assert hass.states.get("sensor.station_alpha_bikes_available").state == "9"
 
 
 async def test_coordinator_respects_larger_ttl(

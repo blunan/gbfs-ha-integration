@@ -22,6 +22,7 @@ from .const import (
     DOMAIN,
     FEED_STATION_INFORMATION,
     FEED_STATION_STATUS,
+    FEED_VEHICLE_TYPES,
     CannotConnect,
     GbfsError,
     InvalidFeed,
@@ -30,6 +31,10 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=30)
+
+# Vehicle types (vehicle_types.json, GBFS 2.1+) that count as e-bikes
+EBIKE_FORM_FACTORS = frozenset({"bicycle", "cargo_bicycle"})
+EBIKE_PROPULSION_TYPES = frozenset({"electric_assist", "electric"})
 
 type GbfsConfigEntry = ConfigEntry[GbfsCoordinator]
 
@@ -125,6 +130,22 @@ def parse_timestamp(value: Any) -> datetime | None:
     return None
 
 
+def ebike_type_ids(vehicle_types: dict[str, Any]) -> set[str]:
+    """IDs of the vehicle types in vehicle_types.json that are e-bikes."""
+    data = vehicle_types.get("data")
+    types = data.get("vehicle_types") if isinstance(data, dict) else None
+    if not isinstance(types, list):
+        return set()
+    return {
+        str(vehicle_type["vehicle_type_id"])
+        for vehicle_type in types
+        if isinstance(vehicle_type, dict)
+        and "vehicle_type_id" in vehicle_type
+        and vehicle_type.get("form_factor") in EBIKE_FORM_FACTORS
+        and vehicle_type.get("propulsion_type") in EBIKE_PROPULSION_TYPES
+    }
+
+
 def _first(record: dict[str, Any], *fields: str) -> Any:
     """Value of the first field the record has: GBFS 3.0 renamed some."""
     return next((record[field] for field in fields if field in record), None)
@@ -133,6 +154,23 @@ def _first(record: dict[str, Any], *fields: str) -> Any:
 def _as_bool(value: Any) -> bool | None:
     # GBFS 1.x uses 0/1, later versions true/false
     return None if value is None else bool(value)
+
+
+def _ebikes_available(record: dict[str, Any], ebike_types: set[str]) -> int | None:
+    """E-bikes at the station, from num_ebikes_available or by vehicle type."""
+    # Not in the GBFS spec, but some operators (Lyft-run systems) publish it
+    if "num_ebikes_available" in record:
+        return record["num_ebikes_available"]
+    counts = record.get("vehicle_types_available")
+    if not ebike_types or not isinstance(counts, list):
+        return None
+    return sum(
+        item["count"]
+        for item in counts
+        if isinstance(item, dict)
+        and str(item.get("vehicle_type_id")) in ebike_types
+        and isinstance(item.get("count"), int)
+    )
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -149,14 +187,13 @@ class StationStatus:
     last_reported: datetime | None = None
 
     @classmethod
-    def from_feed(cls, record: dict[str, Any]) -> StationStatus:
+    def from_feed(cls, record: dict[str, Any], ebike_types: set[str]) -> StationStatus:
         """Reads a station of station_status.json, whatever its GBFS version."""
         return cls(
             bikes_available=_first(
                 record, "num_bikes_available", "num_vehicles_available"
             ),
-            # Not in the GBFS spec, but some operators (Lyft-run systems) publish it
-            ebikes_available=record.get("num_ebikes_available"),
+            ebikes_available=_ebikes_available(record, ebike_types),
             bikes_disabled=_first(
                 record, "num_bikes_disabled", "num_vehicles_disabled"
             ),
@@ -185,6 +222,8 @@ class GbfsCoordinator(DataUpdateCoordinator[dict[str, StationStatus]]):
         self._url: str = entry.data[CONF_URL]
         self._feeds: dict[str, str] = {}
         self.station_info: dict[str, dict[str, Any]] = {}
+        # Vehicle types that are e-bikes, for feeds that count vehicles by type
+        self.ebike_types: set[str] = set()
         # The latest station_status.json records as published, and the fields
         # they have (for diagnostics)
         self.raw_status: dict[str, dict[str, Any]] = {}
@@ -213,6 +252,17 @@ class GbfsCoordinator(DataUpdateCoordinator[dict[str, StationStatus]]):
             for station in stations
             if isinstance(station, dict) and "station_id" in station
         }
+        self.ebike_types = await self._async_ebike_types()
+
+    async def _async_ebike_types(self) -> set[str]:
+        """E-bike vehicle types; they're optional, so a failure only skips them."""
+        if (url := self._feeds.get(FEED_VEHICLE_TYPES)) is None:
+            return set()
+        try:
+            return ebike_type_ids(await async_fetch_json(self._session, url))
+        except GbfsError as err:
+            _LOGGER.warning("Not counting e-bikes by vehicle type: %s", err)
+            return set()
 
     async def _async_update_data(self) -> dict[str, StationStatus]:
         """A single poll to station_status.json for all stations."""
@@ -246,6 +296,6 @@ class GbfsCoordinator(DataUpdateCoordinator[dict[str, StationStatus]]):
                 self.update_interval = interval
 
         return {
-            station_id: StationStatus.from_feed(record)
+            station_id: StationStatus.from_feed(record, self.ebike_types)
             for station_id, record in self.raw_status.items()
         }

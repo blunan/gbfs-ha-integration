@@ -20,6 +20,7 @@ GBFS_URL_V3 = "https://gbfs.example.com/gbfs/3.0/gbfs.json"
 FEED_BASE_V3 = "https://gbfs.example.com/gbfs/3.0"
 FEEDS_V3 = (
     "system_information",
+    "vehicle_types",
     "station_information",
     "station_status",
 )
@@ -67,7 +68,7 @@ def mock_feeds(aioclient_mock):
 
 @pytest.fixture
 def mock_feeds_v3(aioclient_mock):
-    """Mocks a GBFS 3.0 feed with fixture data."""
+    """Mocks a GBFS 3.0 feed, with vehicle types, with fixture data."""
     mock_v3_feeds(aioclient_mock)
     return aioclient_mock
 

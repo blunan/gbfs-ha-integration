@@ -23,5 +23,6 @@ async def test_diagnostics(hass: HomeAssistant, mock_feeds, config_entry) -> Non
     assert diagnostics["update_interval_seconds"] == 60
     assert diagnostics["last_update_success"] is True
     assert "num_bikes_disabled" in diagnostics["published_fields"]
+    assert diagnostics["ebike_vehicle_types"] == []
     assert diagnostics["station_info"]["1"]["name"] == "Station Alpha"
     assert diagnostics["station_status"]["1"]["num_bikes_available"] == 9

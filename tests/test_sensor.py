@@ -41,12 +41,12 @@ async def test_sensor_values(hass: HomeAssistant, mock_feeds, config_entry) -> N
 async def test_sensor_values_v3(
     hass: HomeAssistant, mock_feeds_v3, config_entry_v3
 ) -> None:
-    """GBFS 3.0: renamed fields and RFC 3339 times."""
+    """GBFS 3.0: renamed fields, e-bikes by vehicle type and RFC 3339 times."""
     await _setup(hass, config_entry_v3)
 
     assert hass.states.get("sensor.station_alpha_bikes_available").state == "9"
-    # GBFS 3.0 has no num_ebikes_available: no e-bikes sensor
-    assert hass.states.get("sensor.station_alpha_e_bikes_available") is None
+    # Counted by vehicle type: the e-scooter isn't an e-bike
+    assert hass.states.get("sensor.station_alpha_e_bikes_available").state == "3"
     assert hass.states.get("sensor.station_alpha_bikes_disabled").state == "2"
     assert hass.states.get("sensor.station_alpha_docks_available").state == "30"
     assert hass.states.get("sensor.station_alpha_docks_disabled").state == "1"
@@ -58,7 +58,8 @@ async def test_sensor_values_v3(
     assert hass.states.get("binary_sensor.station_alpha_renting").state == "on"
     assert hass.states.get("binary_sensor.station_alpha_returning").state == "on"
 
-    # Empty station: unknown occupancy; its time has an offset
+    # Empty station: no e-bikes, unknown occupancy; its time has an offset
+    assert hass.states.get("sensor.station_beta_e_bikes_available").state == "0"
     assert hass.states.get("sensor.station_beta_occupancy").state == "unknown"
     assert (
         hass.states.get("sensor.station_beta_last_reported").state
