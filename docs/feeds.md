@@ -1,59 +1,72 @@
-# Supported feeds
+# Supported Feeds
 
-[GBFS](https://gbfs.org/), the General Bikeshare Feed Specification, is the open standard that bike-share systems use to publish real-time data. [MobilityData](https://mobilitydata.org/) maintains it. A system's feed is a set of JSON files, listed in an auto-discovery file called `gbfs.json`.
+Technical reference for General Bikeshare Feed Specification ([GBFS](https://gbfs.org/)) compatibility and data mapping.
 
-## What a feed needs
+## Feed Requirements
 
-- A public `gbfs.json` URL that works without API keys, logins or custom headers.
-- `station_information` and `station_status` among the files it lists.
-- At least one station in `station_information.json`.
+A bike-share feed is compatible if it provides:
 
-`system_information` is optional: the integration only uses it to title the entry. `vehicle_types` is optional too; it lets the integration count e-bikes, see [E-bikes](#e-bikes). The server can label the files as JSON or as plain text; both work, and Ecobici's server uses plain text.
+1. A publicly accessible `gbfs.json` auto-discovery URL that does not require authentication, API keys, or custom headers.
+2. Both `station_information` and `station_status` feeds listed in its discovery file.
+3. At least one physical docking station defined in `station_information.json`.
 
-## GBFS versions
+Optional feeds:
+- `system_information.json`: Used to title the integration entry. If omitted, the hostname is used.
+- `vehicle_types.json`: Used to identify e-bike vehicle types (GBFS 2.1+).
 
-The integration reads GBFS 1.x, 2.x and 3.0 feeds. It doesn't need to be told the version: it reads each field in whatever form the feed uses, and your sensors look the same either way.
+## GBFS Versions
 
-| | 1.x and 2.x | 3.0 |
+The integration normalizes differences between GBFS versions automatically without version-specific user settings:
+
+| Feature | GBFS 1.x & 2.x | GBFS 3.0 |
 |---|---|---|
-| Files in `gbfs.json` | Listed once per language | Listed once |
-| Names | Text | A list of translations |
-| Times | Seconds since 1970 | Date and time text (RFC 3339) |
-| Available and disabled bikes | `num_bikes_available`, `num_bikes_disabled` | `num_vehicles_available`, `num_vehicles_disabled` |
-| Renting and returning flags | `1` and `0` (1.x), `true` and `false` (2.x) | `true` and `false` |
-| E-bikes | `num_ebikes_available` (not in the spec), or counts by vehicle type (2.1+) | Counts by vehicle type |
+| **Discovery structure** | Feeds nested under language keys: `data.<lang>.feeds` | Single unified list: `data.feeds` |
+| **String localization** | Separate files per language | Inline translation lists `[{"text": "...", "language": "..."}]` |
+| **Timestamps** | POSIX epoch seconds | ISO 8601 / RFC 3339 strings with timezone offset |
+| **Bike counts** | `num_bikes_available`, `num_bikes_disabled` | `num_vehicles_available`, `num_vehicles_disabled` |
+| **Status flags** | `0`/`1` (1.x) or `true`/`false` (2.x) | `true`/`false` |
+| **E-bike counts** | Custom `num_ebikes_available` or `vehicle_types_available` | `vehicle_types_available` |
 
-## Languages { #languages }
+## Language Handling { #languages }
 
-GBFS 1.x and 2.x list a feed's files once per language, such as `en` and `es` for Ecobici. GBFS 3.0 lists them once and translates each name instead. Either way, the integration picks the language that matches Home Assistant's, comparing only the main part of the code, so `es-MX` matches `es`. If none matches, it uses the first language listed. This decides the station and system names you see.
+- **GBFS 1.x / 2.x:** The integration selects the feed set matching Home Assistant's configured language (primary subtag match, e.g., `es` matches `es-MX`). If no match is found, the first listed language set is used.
+- **GBFS 3.0:** Localized strings are resolved against Home Assistant's language, falling back to the default translation.
 
-## Fields the integration reads
+This determines the station names and entry title displayed in Home Assistant.
 
-| File | Fields |
-|---|---|
-| `gbfs.json` | The `name` and `url` of each listed feed |
-| `system_information.json` | `name` |
-| `station_information.json` | `station_id`, `name`, `lat` and `lon` of each station |
-| `station_status.json` | The top-level `ttl`, and for each station: `station_id`, `num_bikes_available` or `num_vehicles_available`, `num_bikes_disabled` or `num_vehicles_disabled`, `num_docks_available`, `num_docks_disabled`, `num_ebikes_available`, `vehicle_types_available`, `is_renting`, `is_returning` and `last_reported` |
-| `vehicle_types.json` | `vehicle_type_id`, `form_factor` and `propulsion_type` of each vehicle type |
+## Processed Endpoints and Fields
 
-Other fields are ignored, though [diagnostics](troubleshooting.md#diagnostics) include each station's full records. Other files a system may publish, such as `free_bike_status.json`, `vehicle_status.json` or `system_alerts.json`, aren't downloaded.
+The integration reads only the fields required for station monitoring:
 
-## E-bikes { #e-bikes }
+| Feed | Fields Read | Purpose |
+|---|---|---|
+| `gbfs.json` | `name`, `url` | Locates sub-feeds |
+| `system_information.json` | `name` | Integration entry title |
+| `station_information.json` | `station_id`, `name`, `lat`, `lon` | Station metadata and coordinates |
+| `station_status.json` | `ttl`, `station_id`, `num_bikes_available`, `num_vehicles_available`, `num_bikes_disabled`, `num_vehicles_disabled`, `num_docks_available`, `num_docks_disabled`, `num_ebikes_available`, `vehicle_types_available`, `is_renting`, `is_returning`, `last_reported` | Live station metrics and availability |
+| `vehicle_types.json` | `vehicle_type_id`, `form_factor`, `propulsion_type` | Identifies which vehicle types represent electric bicycles |
 
-The E-bikes available sensor counts the electric bikes ready to rent at a station. It takes the count from:
+Unused feeds (such as `free_bike_status.json`, `geofencing_zones.json`, and `system_pricing_plans.json`) are ignored to minimize bandwidth.
 
-1. **`num_ebikes_available`**, if the station has it. The field isn't part of the GBFS specification, but some operators add it, Citi Bike and Divvy among them.
-2. **Counts by vehicle type** otherwise: the station's `vehicle_types_available` (GBFS 2.1 and later), adding up the types that `vehicle_types.json` describes as electric bicycles. That's a `form_factor` of `bicycle` or `cargo_bicycle`, with `electric_assist` or `electric` propulsion. Electric scooters, mopeds and cars don't count.
+## E-bike Detection Logic { #e-bikes }
 
-If the feed has neither, there's no E-bikes available sensor. The integration downloads `vehicle_types.json` when the entry starts. If that fails, it logs a warning and carries on without counting by type until the entry reloads.
+The **E-bikes available** entity is generated when the feed provides e-bike metrics using either:
 
-## Not supported
+1. **Direct counts:** The station record contains `num_ebikes_available` (standard in systems operated by Lyft/Motivate, such as Citi Bike and Divvy).
+2. **Vehicle type breakdown (GBFS 2.1+):** The station record includes `vehicle_types_available`, and `vehicle_types.json` defines types where:
+    - `form_factor` is `bicycle` or `cargo_bicycle`
+    - `propulsion_type` is `electric_assist` or `electric`
 
-- **Dockless systems:** free-floating bikes and scooters published in `free_bike_status.json` (`vehicle_status.json` in 3.0), with no stations.
-- **Authentication:** feeds that need an API key, a token or custom HTTP headers. systems.csv marks these in its **Authentication Type** column.
-- **Other GBFS data:** system alerts, pricing plans, geofencing zones, and counts of vehicles other than e-bikes, such as scooters, at a station.
+Counts for non-bicycle vehicles (scooters, mopeds, cars) are excluded. If a feed provides neither mechanism, the e-bike entity is not created.
 
-## Load on the operator's server
+## Unsupported Feed Types
 
-Each entry downloads `station_status.json` at most once a minute, or less often if the feed's `ttl` asks for it. Each time the entry starts, it downloads `gbfs.json`, `station_information.json` and, if the feed has it, `vehicle_types.json`. Feeds are public, but each operator sets its own terms of use; check them if you're unsure.
+- **Dockless-only systems:** Systems with free-floating vehicles and no docking stations (`free_bike_status.json` or `vehicle_status.json` only).
+- **Authenticated feeds:** Feeds requiring API keys, tokens, or basic authentication.
+- **Non-station metrics:** System alerts, pricing plans, and individual vehicle battery levels.
+
+## Server Polling and Traffic
+
+- **Routine updates:** Fetches `station_status.json` at most once every 60 seconds, or at the feed's reported `ttl` if longer.
+- **Startup:** Fetches `gbfs.json`, `station_information.json`, and optionally `system_information.json` and `vehicle_types.json`.
+- A single request updates all stations tracked from that feed.

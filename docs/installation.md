@@ -1,32 +1,30 @@
 # Installation
 
-GBFS is a custom integration: it isn't built into Home Assistant, so you add it from its GitHub repository. Home Assistant 2026.11 replaced HACS with the built-in **Marketplace**, so pick the tab for your version.
+Install GBFS using the method corresponding to your Home Assistant version.
 
-=== "Marketplace (2026.11 or later)"
+=== "Marketplace (Home Assistant 2026.11+)"
 
-    1. Go to **Settings → Marketplace**. The first time, accept the warning about community content. Only administrators can open the Marketplace.
+    1. Go to **Settings → Marketplace**.
     2. Select **Add from link** in the top right.
-    3. In **GitHub link**, enter `blunan/gbfs-ha-integration` or `https://github.com/blunan/gbfs-ha-integration`, and select **Add**. If you haven't connected GitHub yet, the Marketplace asks you to do it now. If it asks for a type, choose integrations and select **Add** again.
-    4. Open **GBFS**, select **Install** and confirm.
-    5. If the Marketplace says Home Assistant needs a restart, restart it. A repair under **Settings → System → Repairs** can do it for you. Otherwise the GBFS setup opens right away.
+    3. Enter `blunan/gbfs-ha-integration` or `https://github.com/blunan/gbfs-ha-integration`, and select **Add**.
+    4. Select **GBFS**, click **Install**, and confirm.
+    5. Restart Home Assistant if prompted.
 
-=== "HACS (2026.3 – 2026.10)"
+=== "HACS (Home Assistant 2026.3 – 2026.10)"
 
-    [Open GBFS in HACS](https://my.home-assistant.io/redirect/hacs_repository/?owner=blunan&repository=gbfs-ha-integration&category=integration){ .md-button .md-button--primary }
+    [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=blunan&repository=gbfs-ha-integration&category=integration){ .md-button .md-button--primary }
 
-    The button opens the repository in your HACS. To add it by hand instead:
+    Or install manually via HACS:
 
     1. Open **HACS** and select **⋮ → Custom repositories** in the top right.
-    2. Enter `https://github.com/blunan/gbfs-ha-integration`, choose the type **Integration** and select **Add**.
-    3. Search for **GBFS**, open it and select **Download**.
+    2. Enter `https://github.com/blunan/gbfs-ha-integration`, select category **Integration**, and click **Add**.
+    3. Search for **GBFS**, open it, and select **Download**.
     4. Restart Home Assistant.
-
-    When you update Home Assistant to 2026.11 or later, HACS moves into the Marketplace by itself: GBFS stays installed and keeps getting updates.
 
 === "Manual"
 
-    1. Download the repository, preferably from a [release](https://github.com/blunan/gbfs-ha-integration/releases).
-    2. Copy its `custom_components/gbfs/` folder into the `custom_components/` folder of your Home Assistant configuration directory, the one with `configuration.yaml`. Create `custom_components/` if it doesn't exist. You should end up with:
+    1. Download the latest release from the [Releases](https://github.com/blunan/gbfs-ha-integration/releases) page.
+    2. Copy the `custom_components/gbfs/` folder into your Home Assistant `config/custom_components/` directory:
 
         ```text
         config/
@@ -40,21 +38,29 @@ GBFS is a custom integration: it isn't built into Home Assistant, so you add it 
 
     3. Restart Home Assistant.
 
-    Manual installs don't update themselves. Repeat these steps to upgrade.
-
-Next, [add the integration](configuration.md).
+    !!! note "Updates for manual installs"
+        Manual installations do not update automatically. Repeat these steps whenever a new version is released.
 
 ## Updates
 
-The Marketplace and HACS create an update entity for GBFS, so a new release appears under **Settings → Updates** like any other update. Check the [release notes](https://github.com/blunan/gbfs-ha-integration/releases), install it, and restart Home Assistant if asked.
+Both Marketplace and HACS notify you when a new release is available under **Settings → Updates**. Review the release notes and install the update as usual.
 
-Pre-releases, such as `0.2.0-rc1`, are only offered if you opt in. In the Marketplace, go to **Settings → Devices & services → Marketplace** and open the GBFS device. Its **Pre-release** switch entity is disabled by default: enable the entity, then turn the switch on.
+To opt into pre-releases (e.g., `0.2.0-rc1`):
+
+- **Marketplace:** Go to **Settings → Devices & services → Marketplace**, open the **GBFS** device, enable the disabled **Pre-release** switch entity, and turn it on.
+- **HACS:** Open the GBFS integration page in HACS, select **⋮ → Redownload**, and enable **Show beta versions**.
 
 ## Uninstall
 
-1. Delete the GBFS entries: go to **Settings → Devices & services → GBFS** and select **⋮ → Delete** on each entry. This removes their devices and entities.
-2. Remove the files:
-    - **Marketplace:** open GBFS and select **⋮ → Uninstall**. **Delete and uninstall** does step 1 for you as well.
-    - **HACS:** open GBFS and select **⋮ → Remove**.
-    - **Manual:** delete `custom_components/gbfs/`.
+To completely remove the integration:
+
+1. **Delete configured entries:** Go to **Settings → Devices & services → GBFS** and select **⋮ → Delete** on each configured feed entry. This removes all associated devices and entities.
+2. **Remove integration files:**
+    - **Marketplace:** Open GBFS and select **⋮ → Uninstall** (or choose **Delete and uninstall** to perform step 1 automatically).
+    - **HACS:** Open GBFS and select **⋮ → Remove**.
+    - **Manual:** Delete the `custom_components/gbfs/` directory.
 3. Restart Home Assistant.
+
+---
+
+Once installed, proceed to [Configuration](configuration.md) to add your bike-share feed.

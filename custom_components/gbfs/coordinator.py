@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator for GBFS: a single poll to station_status.json feeds all stations."""
+"""DataUpdateCoordinator for GBFS bike-share feeds."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ _LOGGER = logging.getLogger(__name__)
 
 REQUEST_TIMEOUT = aiohttp.ClientTimeout(total=30)
 
-# Vehicle types (vehicle_types.json, GBFS 2.1+) that count as e-bikes
+# Vehicle types (GBFS 2.1+) categorized as e-bikes
 EBIKE_FORM_FACTORS = frozenset({"bicycle", "cargo_bicycle"})
 EBIKE_PROPULSION_TYPES = frozenset({"electric_assist", "electric"})
 
@@ -40,11 +40,11 @@ type GbfsConfigEntry = ConfigEntry[GbfsCoordinator]
 
 
 async def async_fetch_json(session: aiohttp.ClientSession, url: str) -> dict[str, Any]:
-    """Downloads and parses a JSON from the GBFS feed."""
+    """Download and parse JSON from a feed URL."""
     try:
         async with session.get(url, timeout=REQUEST_TIMEOUT) as resp:
             resp.raise_for_status()
-            # content_type=None: some feeds serve JSON as text/plain
+            # Set content_type=None because some feeds return JSON as text/plain
             data = await resp.json(content_type=None)
     except (aiohttp.ClientError, TimeoutError) as err:
         raise CannotConnect(f"Error querying {url}: {err}") from err
@@ -56,7 +56,7 @@ async def async_fetch_json(session: aiohttp.ClientSession, url: str) -> dict[str
 
 
 def _pick_language[T](items: Iterable[tuple[Any, T]], language: str | None) -> T | None:
-    """Item whose language matches `language` (primary subtag), or else the first one."""
+    """Select the item matching the requested language subtag, or the first item."""
     items = list(items)
     if not items:
         return None
@@ -71,10 +71,7 @@ def _pick_language[T](items: Iterable[tuple[Any, T]], language: str | None) -> T
 def resolve_feeds(
     discovery: dict[str, Any], language: str | None = None
 ) -> dict[str, str]:
-    """Resolves gbfs.json to a name→URL map of feeds.
-
-    Supports GBFS 1.x/2.x (data.{lang}.feeds) and GBFS 3.0 (data.feeds).
-    """
+    """Resolve gbfs.json discovery payload to a feed name to URL mapping."""
     data = discovery.get("data")
     if not isinstance(data, dict):
         raise InvalidFeed("gbfs.json does not contain the 'data' key")
@@ -105,7 +102,7 @@ def resolve_feeds(
 
 
 def localized_text(value: Any, language: str | None) -> str | None:
-    """Text of a GBFS string: plain (1.x/2.x) or a list of translations (3.0)."""
+    """Extract localized string from a plain text value or GBFS 3.0 translation list."""
     if isinstance(value, str):
         return value
     if isinstance(value, list):
@@ -121,17 +118,17 @@ def localized_text(value: Any, language: str | None) -> str | None:
 
 
 def parse_timestamp(value: Any) -> datetime | None:
-    """A GBFS timestamp: POSIX seconds (1.x/2.x) or RFC 3339 text (3.0)."""
+    """Parse POSIX epoch seconds or RFC 3339 datetime text."""
     if isinstance(value, (int, float)):
         return dt_util.utc_from_timestamp(value)
     if isinstance(value, str) and (parsed := dt_util.parse_datetime(value)):
-        # RFC 3339 requires an offset: without one, the time is ambiguous
+        # Require timezone offset to prevent ambiguous local timestamps
         return parsed if parsed.tzinfo else None
     return None
 
 
 def ebike_type_ids(vehicle_types: dict[str, Any]) -> set[str]:
-    """IDs of the vehicle types in vehicle_types.json that are e-bikes."""
+    """Extract vehicle type IDs representing electric bicycles."""
     data = vehicle_types.get("data")
     types = data.get("vehicle_types") if isinstance(data, dict) else None
     if not isinstance(types, list):
@@ -147,18 +144,16 @@ def ebike_type_ids(vehicle_types: dict[str, Any]) -> set[str]:
 
 
 def _first(record: dict[str, Any], *fields: str) -> Any:
-    """Value of the first field the record has: GBFS 3.0 renamed some."""
+    """Return value of the first matching field found in the record."""
     return next((record[field] for field in fields if field in record), None)
 
 
 def _as_bool(value: Any) -> bool | None:
-    # GBFS 1.x uses 0/1, later versions true/false
     return None if value is None else bool(value)
 
 
 def _ebikes_available(record: dict[str, Any], ebike_types: set[str]) -> int | None:
-    """E-bikes at the station, from num_ebikes_available or by vehicle type."""
-    # Not in the GBFS spec, but some operators (Lyft-run systems) publish it
+    """Extract available e-bike count from direct field or vehicle type breakdown."""
     if "num_ebikes_available" in record:
         return record["num_ebikes_available"]
     counts = record.get("vehicle_types_available")
@@ -175,7 +170,7 @@ def _ebikes_available(record: dict[str, Any], ebike_types: set[str]) -> int | No
 
 @dataclass(frozen=True, kw_only=True, slots=True)
 class StationStatus:
-    """A station's status, read the same way from every GBFS version."""
+    """Normalized status for a bike-share station across GBFS versions."""
 
     bikes_available: int | None = None
     ebikes_available: int | None = None
@@ -188,7 +183,7 @@ class StationStatus:
 
     @classmethod
     def from_feed(cls, record: dict[str, Any], ebike_types: set[str]) -> StationStatus:
-        """Reads a station of station_status.json, whatever its GBFS version."""
+        """Parse a raw station_status.json record into StationStatus."""
         return cls(
             bikes_available=_first(
                 record, "num_bikes_available", "num_vehicles_available"
@@ -206,7 +201,7 @@ class StationStatus:
 
 
 class GbfsCoordinator(DataUpdateCoordinator[dict[str, StationStatus]]):
-    """Coordinator that polls station_status.json and exposes data by station_id."""
+    """Coordinator that polls station_status.json for all stations."""
 
     config_entry: GbfsConfigEntry
 
@@ -222,20 +217,17 @@ class GbfsCoordinator(DataUpdateCoordinator[dict[str, StationStatus]]):
         self._url: str = entry.data[CONF_URL]
         self._feeds: dict[str, str] = {}
         self.station_info: dict[str, dict[str, Any]] = {}
-        # Vehicle types that are e-bikes, for feeds that count vehicles by type
         self.ebike_types: set[str] = set()
-        # The latest station_status.json records as published, and the fields
-        # they have (for diagnostics)
         self.raw_status: dict[str, dict[str, Any]] = {}
         self.published_fields: set[str] = set()
 
     def station_name(self, station_id: str) -> str | None:
-        """Station name, in Home Assistant's language if the feed translates it."""
+        """Return station name in Home Assistant's language if available."""
         info = self.station_info.get(station_id, {})
         return localized_text(info.get("name"), self.hass.config.language)
 
     async def _async_setup(self) -> None:
-        """Feed auto-discovery and loading station_information (once only)."""
+        """Perform initial feed discovery and load station metadata."""
         try:
             discovery = await async_fetch_json(self._session, self._url)
             self._feeds = resolve_feeds(discovery, self.hass.config.language)
@@ -255,7 +247,7 @@ class GbfsCoordinator(DataUpdateCoordinator[dict[str, StationStatus]]):
         self.ebike_types = await self._async_ebike_types()
 
     async def _async_ebike_types(self) -> set[str]:
-        """E-bike vehicle types; they're optional, so a failure only skips them."""
+        """Fetch and identify e-bike vehicle types if published."""
         if (url := self._feeds.get(FEED_VEHICLE_TYPES)) is None:
             return set()
         try:
@@ -265,7 +257,7 @@ class GbfsCoordinator(DataUpdateCoordinator[dict[str, StationStatus]]):
             return set()
 
     async def _async_update_data(self) -> dict[str, StationStatus]:
-        """A single poll to station_status.json for all stations."""
+        """Fetch and parse station_status.json for all stations."""
         try:
             status = await async_fetch_json(
                 self._session, self._feeds[FEED_STATION_STATUS]

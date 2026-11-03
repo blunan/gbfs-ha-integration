@@ -1,16 +1,18 @@
-# Dashboards and automations
+# Dashboards and Automations
 
-These examples use Ecobici's *CE-003 Reforma - Insurgentes* and *CE-029 Reforma - Bucareli* stations, on Home Assistant in English. Replace the entity IDs with yours; [Names and entity IDs](entities.md#names-and-entity-ids) shows how to find them.
+Practical dashboard cards and automations using the integration's sensors.
 
-To use a card, edit your dashboard, add a **Manual** card and paste its YAML. To use an automation, go to **Settings → Automations & scenes**, create an automation and select **⋮ → Edit in YAML**.
+Replace the example entity IDs (`sensor.ce_003_reforma_insurgentes_...`) with your station's actual entities, which can be found on each station's device page.
 
-## Dashboards
+## Dashboard Cards
 
-### Stations on a map { #map }
+### Stations on a Map { #map }
+
+Plot stations on a Home Assistant Map card. Setting `label_mode: state` displays each station's live bike count directly on its marker:
 
 ```yaml
 type: map
-title: Bike stations
+title: Bike Stations
 entities:
   - entity: sensor.ce_003_reforma_insurgentes_bikes_available
     label_mode: state
@@ -19,9 +21,12 @@ entities:
 default_zoom: 15
 ```
 
-`label_mode: state` puts each station's bike count on its marker, instead of the initials of its name. Only the Bikes available sensor has coordinates, so add that one for each station.
+!!! note "Coordinates"
+    Only the **Bikes available** sensor carries coordinates, ensuring exactly one pin per station on the map.
 
-### One station at a glance
+### Station Overview (Entities Card)
+
+Display all key metrics for a station in a single card:
 
 ```yaml
 type: entities
@@ -29,6 +34,8 @@ title: Reforma - Insurgentes
 entities:
   - entity: sensor.ce_003_reforma_insurgentes_bikes_available
     name: Bikes
+  - entity: sensor.ce_003_reforma_insurgentes_e_bikes_available
+    name: E-bikes
   - entity: sensor.ce_003_reforma_insurgentes_docks_available
     name: Free docks
   - entity: sensor.ce_003_reforma_insurgentes_occupancy
@@ -41,11 +48,9 @@ entities:
     name: Last report
 ```
 
-If your feed publishes e-bikes, add the station's `_e_bikes_available` sensor too.
+### Station Occupancy Gauge
 
-### How full it is
-
-A gauge that's red at both ends: an empty station has no bikes to rent, and a full one has no dock for your return.
+A gauge highlighting extreme conditions — empty stations (no bikes to rent) or full stations (no docks to return):
 
 ```yaml
 type: gauge
@@ -67,11 +72,13 @@ segments:
     color: "#db4437"
 ```
 
-### A week of bikes
+### Weekly Usage Statistics Graph
+
+Track historical station availability using Home Assistant long-term statistics:
 
 ```yaml
 type: statistics-graph
-title: Bikes at Reforma - Insurgentes
+title: Bike Availability Trend
 entities:
   - sensor.ce_003_reforma_insurgentes_bikes_available
 days_to_show: 7
@@ -83,18 +90,16 @@ stat_types:
   - max
 ```
 
-The graph uses long-term statistics, so it keeps working after the recorder purges detailed history. Over a week, it shows your station's daily rhythm: when it empties in the morning and when it fills up again.
-
 ## Automations
 
-Replace `notify.mobile_app_your_phone` with the notify action of your phone, which the Home Assistant Companion app creates.
+Replace `notify.mobile_app_your_phone` with your mobile device's notify service or action.
 
-### Bike report before work
+### Morning Commute Briefing
 
-Every weekday at 7:45, send the number of bikes and free docks at your station.
+Send a notification every weekday morning with bike and dock counts:
 
 ```yaml
-alias: Bike report before work
+alias: Morning Bike Briefing
 triggers:
   - trigger: time
     at: "07:45:00"
@@ -107,15 +112,15 @@ actions:
       title: Reforma - Insurgentes
       message: >-
         {{ states('sensor.ce_003_reforma_insurgentes_bikes_available') }} bikes,
-        {{ states('sensor.ce_003_reforma_insurgentes_docks_available') }} free docks
+        {{ states('sensor.ce_003_reforma_insurgentes_docks_available') }} free docks available.
 ```
 
-### Bikes running out
+### Low Bike Availability Warning
 
-Warn when the station drops below three bikes during the morning commute. The trigger fires when the count crosses below three, not while it stays there.
+Alert when station bike count drops below 3 during the morning rush:
 
 ```yaml
-alias: Bikes running out at Reforma - Insurgentes
+alias: Low Bike Alert
 triggers:
   - trigger: numeric_state
     entity_id: sensor.ce_003_reforma_insurgentes_bikes_available
@@ -128,17 +133,18 @@ conditions:
 actions:
   - action: notify.mobile_app_your_phone
     data:
+      title: Bike Shortage Warning
       message: >-
         Only {{ states('sensor.ce_003_reforma_insurgentes_bikes_available') }}
         bikes left at Reforma - Insurgentes.
 ```
 
-### Station stops renting
+### Rental Interruption Alert
 
-`from: "on"` ignores the station coming back from unavailable, and `for` ignores short interruptions.
+Alert when a station goes out of service or halts rentals for more than 10 minutes:
 
 ```yaml
-alias: Reforma - Insurgentes stopped renting
+alias: Station Stopped Renting
 triggers:
   - trigger: state
     entity_id: binary_sensor.ce_003_reforma_insurgentes_renting
@@ -148,20 +154,24 @@ triggers:
 actions:
   - action: notify.mobile_app_your_phone
     data:
-      message: Reforma - Insurgentes isn't renting bikes right now.
+      message: Reforma - Insurgentes is temporarily not renting bikes.
 ```
 
-### Station not reporting { #stale-station }
+### Stale Station Detection Helper { #stale-station }
 
-A station that stops reporting keeps its last counts. To catch that, create a template binary sensor helper: go to **Settings → Devices & services → Helpers**, select **Create helper → Template**, and choose a binary sensor. Use this state template:
+If a station stops reporting, its counts remain static at the last known values. To flag stale data, create a Template Binary Sensor helper in **Settings → Devices & services → Helpers → Create helper → Template → Template a binary sensor**:
 
 ```jinja
 {% set last = states('sensor.ce_003_reforma_insurgentes_last_reported') | as_datetime %}
 {{ last is not none and now() - last > timedelta(minutes=30) }}
 ```
 
-It turns on when the station hasn't reported for 30 minutes. Use it in automations or show it on a dashboard.
+This sensor turns `on` if the station has not reported updates for over 30 minutes.
 
-### Total bikes near you
+### Neighborhood Bike Aggregation
 
-To add up the bikes at several stations, go to **Settings → Devices & services → Helpers** and create a **Combine the state of several sensors** helper. Pick their Bikes available sensors, and choose the **Sum** type.
+To calculate the total number of bikes across nearby stations:
+
+1. Go to **Settings → Devices & services → Helpers**.
+2. Select **Create helper → Combine the state of several sensors**.
+3. Add the `bikes_available` entities of your nearby stations and set the statistic type to **Sum**.

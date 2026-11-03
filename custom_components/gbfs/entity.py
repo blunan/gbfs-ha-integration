@@ -1,4 +1,4 @@
-"""Base GBFS entity: groups entities of a station in one device."""
+"""Base entity for GBFS stations."""
 
 from __future__ import annotations
 
@@ -9,17 +9,17 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .coordinator import GbfsCoordinator, StationStatus
 
-# Status of a station missing from the latest poll: every value unknown
+# Default status when a station is absent from latest poll
 NO_STATUS = StationStatus()
 
 
 def station_identifier(entry_id: str, station_id: str) -> str:
-    """Device identifier of a station, scoped to its entry: systems reuse IDs."""
+    """Return device identifier for a station, scoped to its entry."""
     return f"{entry_id}_{station_id}"
 
 
 class GbfsEntity(CoordinatorEntity[GbfsCoordinator]):
-    """Base for all entities of a GBFS station."""
+    """Base entity for a GBFS station."""
 
     _attr_has_entity_name = True
 
@@ -43,10 +43,10 @@ class GbfsEntity(CoordinatorEntity[GbfsCoordinator]):
 
     @property
     def available(self) -> bool:
-        """The entity is available if the station appears in the latest poll."""
+        """Return True if station is present in latest successful update."""
         return super().available and self._station_id in self.coordinator.data
 
     @property
     def station_status(self) -> StationStatus:
-        """Current status of the station in station_status.json."""
+        """Return current StationStatus for this station."""
         return self.coordinator.data.get(self._station_id, NO_STATUS)

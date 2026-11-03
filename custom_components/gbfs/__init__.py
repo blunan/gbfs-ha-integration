@@ -14,7 +14,7 @@ PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: GbfsConfigEntry) -> bool:
-    """Sets up a GBFS feed from a config entry."""
+    """Set up a GBFS feed from a config entry."""
     coordinator = GbfsCoordinator(hass, entry)
     await coordinator.async_config_entry_first_refresh()
     entry.runtime_data = coordinator
@@ -25,22 +25,22 @@ async def async_setup_entry(hass: HomeAssistant, entry: GbfsConfigEntry) -> bool
 
 
 async def _async_update_listener(hass: HomeAssistant, entry: GbfsConfigEntry) -> None:
-    """Reloads the entry when selected stations change (options flow)."""
+    """Reload the entry when selected stations change (options flow)."""
     await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: GbfsConfigEntry) -> bool:
-    """Unloads a config entry."""
+    """Unload a config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def async_remove_config_entry_device(
     hass: HomeAssistant, entry: GbfsConfigEntry, device_entry: dr.AnyDeviceEntry
 ) -> bool:
-    """Allows deleting the device of a station that is no longer selected.
+    """Allow deleting the device of a station that is no longer selected.
 
-    A selected station's device would come back with the next reload, so the
-    station has to be unselected in the options flow first.
+    A selected station's device would be recreated on the next reload, so the
+    station must be unselected in the options flow first.
     """
     selected = {
         station_identifier(entry.entry_id, station_id)

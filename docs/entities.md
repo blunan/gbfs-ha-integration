@@ -1,96 +1,81 @@
 # Entities
 
-Each station you pick becomes a device with up to seven sensors and two binary sensors.
+Each selected bike-share station becomes a device in Home Assistant equipped with availability sensors and status flags.
 
-## The station device
+## Station Device
 
-| | |
+| Attribute | Value |
 |---|---|
-| **Name** | The station's name in the feed (`station_information.json`), in your Home Assistant language if the feed translates it, or "Station" and its ID if the feed gives no name |
+| **Name** | Station name from `station_information.json` (localized to Home Assistant's language if available), or `Station <ID>` |
 | **Manufacturer** | GBFS |
 | **Model** | Bike share station |
 
 ## Sensors
 
-| Entity | Entity ID ends in | Value | From the feed | Created |
+| Entity | Entity ID Suffix | Type | Published Field | Description & Behavior |
 |---|---|---|---|---|
-| Bikes available | `_bikes_available` | Count | `num_bikes_available` (3.0: `num_vehicles_available`) | Always |
-| E-bikes available | `_e_bikes_available` | Count | `num_ebikes_available`, or counts by vehicle type | If the feed counts e-bikes |
-| Bikes disabled | `_bikes_disabled` | Count | `num_bikes_disabled` (3.0: `num_vehicles_disabled`) | If the feed publishes it |
-| Docks available | `_docks_available` | Count | `num_docks_available` | Always |
-| Docks disabled | `_docks_disabled` | Count | `num_docks_disabled` | If the feed publishes it |
-| Occupancy | `_occupancy` | % | Calculated | Always |
-| Last reported | `_last_reported` | Timestamp | `last_reported` | Always |
+| **Bikes available** | `_bikes_available` | Count | `num_bikes_available` (3.0: `num_vehicles_available`) | Total rentable bikes at the station. Carries station `latitude` and `longitude` attributes for map cards. |
+| **E-bikes available** | `_e_bikes_available` | Count | `num_ebikes_available` or `vehicle_types_available` | Rentable electric bikes. Created only if the feed reports direct e-bike counts or defines electric bicycle vehicle types. |
+| **Bikes disabled** | `_bikes_disabled` | Count | `num_bikes_disabled` (3.0: `num_vehicles_disabled`) | Bikes at the station needing repair or unavailable for rent. Created only if published by the feed. |
+| **Docks available** | `_docks_available` | Count | `num_docks_available` | Empty, functioning docks ready for bike returns. |
+| **Docks disabled** | `_docks_disabled` | Count | `num_docks_disabled` | Out-of-service docks. Created only if published by the feed. |
+| **Occupancy** | `_occupancy` | Percentage | Calculated | Station fullness percentage: `bikes / (bikes + docks) * 100`. |
+| **Last reported** | `_last_reported` | Timestamp | `last_reported` | Diagnostic timestamp showing when the station last reported to the operator. |
 
-- **Bikes available:** bikes ready to rent. The feed counts every vehicle the station offers, so in systems that also dock scooters, those count too. It also carries the station's coordinates; see [Location](#location).
-- **E-bikes available:** electric bikes ready to rent. Some operators publish this count directly; for others, the integration adds up the electric bicycle types in the feed's counts by vehicle type. Citi Bike and Buenos Aires' Ecobici have it, Mexico City's Ecobici doesn't. See [E-bikes](feeds.md#e-bikes).
-- **Bikes disabled:** bikes at the station that can't be rented, for example because they need repairs.
-- **Docks available:** empty, working docks where you can return a bike.
-- **Docks disabled:** docks that are out of service.
-- **Occupancy:** how full the station is; see [Occupancy](#occupancy).
-- **Last reported:** when the station last reported to the operator; see [Last reported](#last-reported).
+## Binary Sensors
 
-The entity ID endings are for Home Assistant in English. [Names and entity IDs](#names-and-entity-ids) explains how IDs are made.
-
-## Binary sensors
-
-| Entity | Entity ID ends in | On when | From the feed |
+| Entity | Entity ID Suffix | Condition When On | GBFS Field |
 |---|---|---|---|
-| Renting | `_renting` | The station rents out bikes | `is_renting` |
-| Returning | `_returning` | The station accepts returns | `is_returning` |
+| **Renting** | `_renting` | Station is actively renting bikes | `is_renting` |
+| **Returning** | `_returning` | Station is actively accepting bike returns | `is_returning` |
 
-Both are always created. GBFS 1.x publishes these flags as `1` and `0`, and later versions as `true` and `false`; both work. They can differ: an operator can stop rentals at a station while it still accepts returns.
+Both binary sensors handle 1.x integer flags (`0`/`1`) and 2.x/3.0 boolean values (`true`/`false`). An operator may permit returns while disabling rentals (e.g., during maintenance or rebalancing).
 
-## Occupancy { #occupancy }
+## Occupancy Calculation { #occupancy }
+
+Occupancy indicates how full a station is, rounded to one decimal place:
 
 ```text
 Occupancy = Bikes available / (Bikes available + Docks available) × 100
 ```
 
-The result is rounded to one decimal.
+- **0%**: No bikes available to rent.
+- **100%**: No free docks available for returns.
+- **Unknown state**: Set to `unknown` if a station has zero total capacity (e.g., closed stations reporting 0 bikes and 0 docks), or if the feed omits dock counts (such as valet stations or floating zones). Out-of-service bikes and docks are excluded from the calculation.
 
-- **0 %** means there are no bikes to rent.
-- **100 %** means there's no free dock to return a bike to.
+## Diagnostic Timestamp: Last Reported { #last-reported }
 
-Out-of-service bikes and docks don't count. Occupancy is **unknown** when the station has neither bikes nor free docks (both are zero, for example while it's closed), or when the feed leaves out either count. The specification lets stations with unlimited docking capacity, such as valet stations, leave out `num_docks_available`.
+The **Last reported** sensor displays the timestamp of the station's last communication with the bike-share operator. If a station loses network connectivity, its counts may become stale while the operator continues serving the last known data.
 
-## Last reported { #last-reported }
+- **Timestamp formats:** Automatically parses POSIX epoch timestamps (GBFS 1.x/2.x) and RFC 3339 datetime strings (GBFS 3.0).
+- **Timezone requirement:** GBFS 3.0 timestamps without a timezone offset are ambiguous and display as `unknown`.
+- **Diagnostic category:** Categorized as a diagnostic entity, keeping auto-generated dashboards clean.
 
-The time the station last sent its status to the operator, shown as a relative time such as "3 minutes ago". A station that stops reporting keeps showing its last counts, so this time tells you whether they're stale. [An example](examples.md#stale-station) warns you when that happens.
+## Map Location Attributes { #location }
 
-GBFS 1.x and 2.x publish this time as seconds since 1970, and 3.0 as date and time text; both work. A 3.0 time without a time zone offset is ambiguous, so the sensor shows it as unknown.
+The **Bikes available** sensor includes `latitude` and `longitude` attributes populated from `station_information.json`. Adding this entity to a Home Assistant Map card places a marker at the station's physical coordinates displaying its current bike count.
 
-It's a **diagnostic** entity: it appears under **Diagnostic** on the device page, and Home Assistant leaves it out of auto-generated dashboards.
+Other station entities omit coordinates so each station generates a single marker on map cards.
 
-## Location { #location }
+## Long-Term Statistics & History
 
-**Bikes available** has `latitude` and `longitude` attributes with the station's position from `station_information.json`, so the [map card](examples.md#map) can place it. The other entities don't have them, so the map shows one marker per station.
+All count sensors and the occupancy sensor use `state_class: measurement`. Home Assistant automatically records long-term hourly statistics (mean, minimum, maximum), which persist after raw state history is purged. These sensors integrate seamlessly with Statistics Graph cards and database exports like InfluxDB.
 
-## Statistics and history
+## Entity State Behavior
 
-All counts and occupancy have the `measurement` state class, so Home Assistant keeps long-term statistics for them: hourly mean, minimum and maximum, kept after the recorder purges detailed history. Statistics graph cards use them, and export integrations such as InfluxDB pick these sensors up like any other.
-
-Counts have no unit of measurement, and occupancy is in %.
-
-## Unknown and unavailable
-
-| State | When |
+| Entity State | Cause |
 |---|---|
-| A value | The latest update includes the station and the field. |
-| **Unknown** | The station is in the latest update, but the field is missing or the value can't be calculated, as with [Occupancy](#occupancy). |
-| **Unavailable**, one station | The station is missing from the latest `station_status.json`. Operators drop stations that are closed, being moved or under maintenance. |
-| **Unavailable**, every station of the entry | The latest update failed: the server didn't answer, or didn't answer with valid station status. The integration tries again at the next update. |
+| **Numeric or On/Off** | Feed update succeeded and included status for the station. |
+| **Unknown** | Station is present in update, but field is omitted or cannot be computed (e.g., occupancy with 0 total capacity). |
+| **Unavailable** *(single station)* | Station is omitted from the operator's latest `station_status.json` (e.g., undergoing station maintenance or temporary closure). |
+| **Unavailable** *(all stations)* | Polling request failed (network timeout, HTTP error, or malformed JSON). Entities restore automatically on the next successful update. |
 
-## Updates
+## Polling Interval & Data Freshness
 
-The integration downloads `station_status.json` every 60 seconds. If the file's `ttl`, the time the operator says the data stays fresh, is longer than that, it waits for the `ttl` instead. Many feeds have a shorter `ttl`, such as Ecobici's 10 seconds, and then the integration stays at 60 seconds.
+The integration polls `station_status.json` every **60 seconds**, or at the feed's specified `ttl` (cache duration) if greater than 60 seconds. A single request updates all configured stations for that feed simultaneously.
 
-One download covers every station you picked from that system, however many there are. The data is only as fresh as the operator's feed: check each station's [Last reported](#last-reported) time.
+## Names and Entity IDs { #names-and-entity-ids }
 
-## Names and entity IDs { #names-and-entity-ids }
-
-- **Names** combine the station's name and the entity's name, as in *CE-003 Reforma - Insurgentes Bikes available*. Entity names are translated into English and Spanish. Station names come from the feed, in your Home Assistant language when the feed translates them; see [Languages](feeds.md#languages).
-- **Entity IDs** are made once, when an entity first appears, from the same two names in your Home Assistant language. With Home Assistant in English, Ecobici's *CE-003 Reforma - Insurgentes* station gets `sensor.ce_003_reforma_insurgentes_bikes_available`, `binary_sensor.ce_003_reforma_insurgentes_renting` and so on. In other languages, the endings may be translated too.
-- Renaming a station later, in Home Assistant or at the operator, doesn't change existing entity IDs.
-
-To find your entity IDs, open the station's device page or search for the station under **Settings → Devices & services → Entities**.
+- **Display Names:** Combine the station name and entity name (e.g., *CE-003 Reforma - Insurgentes Bikes available*). Station names match your Home Assistant language when the feed publishes translations; otherwise, the operator's default name is used.
+- **Entity IDs:** Generated upon initial discovery from the station and entity names (e.g., `sensor.ce_003_reforma_insurgentes_bikes_available`). Once created, entity IDs remain stable even if station names are updated later.
+- **Finding Entities:** View all entities for a station on its device page under **Settings → Devices & services → Entities**.

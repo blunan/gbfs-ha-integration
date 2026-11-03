@@ -1,31 +1,33 @@
 # Troubleshooting
 
-## Download diagnostics { #diagnostics }
+Diagnostic steps and solutions for common questions and issues.
 
-Go to **Settings → Devices & services → GBFS** and, on the entry, select **⋮ → Download diagnostics**. You get a JSON file with:
+## Diagnostics { #diagnostics }
 
-| Key | Contents |
-|---|---|
-| `entry.data` | The feed URL |
-| `entry.options` | The IDs of the stations you picked |
-| `update_interval_seconds` | The current time between updates: 60, or the feed's `ttl` if that's longer |
-| `last_update_success` | Whether the latest update worked |
-| `published_fields` | Every field seen in the latest `station_status.json`, across all stations |
-| `ebike_vehicle_types` | The vehicle types counted as e-bikes, if the feed has `vehicle_types.json` |
-| `station_info` | The `station_information.json` record of every station in the system |
-| `station_status` | The latest `station_status.json` record of every station in the system |
+Download integration diagnostic data for debugging or bug reports:
 
-The file covers every station in the system, not only yours, so it can be large for big systems. It holds nothing private, since the feed is public. Attach it when you [report a problem](#report-a-problem).
+1. Go to **Settings → Devices & services → GBFS**.
+2. Select **⋮ → Download diagnostics** on the integration card.
 
-## Debug logs { #debug-logs }
+The downloaded JSON file contains:
 
-To log what the integration does in detail:
+- Config entry data and selected station IDs.
+- Current polling interval and last update success state.
+- Set of all field names published in the latest `station_status.json`.
+- List of vehicle type IDs identified as e-bikes.
+- Raw station metadata (`station_info`) and live status records (`station_status`).
 
-1. Go to **Settings → Devices & services → GBFS** and select **⋮ → Enable debug logging**.
-2. Reproduce the problem. For update problems, wait a few minutes to cover several updates.
-3. Select **⋮ → Disable debug logging**. Your browser downloads the log.
+Feed data is public, so diagnostic dumps contain no credentials or private information.
 
-To keep debug logging on across restarts, add this to `configuration.yaml` and restart Home Assistant:
+## Debug Logs { #debug-logs }
+
+To enable live debug logging via the UI:
+
+1. Go to **Settings → Devices & services → GBFS**.
+2. Select **⋮ → Enable debug logging**.
+3. Allow a few minutes for polling cycles to run, then select **⋮ → Disable debug logging** to download the log file.
+
+To enable persistent debug logging across Home Assistant restarts, add this to `configuration.yaml`:
 
 ```yaml
 logger:
@@ -34,60 +36,71 @@ logger:
     custom_components.gbfs: debug
 ```
 
-With debug logging, each update logs a line like `Finished fetching gbfs data in 0.214 seconds (success: True)`. When the feed's `ttl` changes the update interval, you'll see `Adjusting poll interval to 0:05:00 due to feed ttl`.
+When enabled, logs record network response times (`Finished fetching gbfs data in 0.214 seconds`), TTL-based interval changes, and any HTTP or JSON parsing errors.
 
-## Errors when adding the integration
+## Setup Errors { #setup-errors }
 
-**Failed to connect to the feed**, **The URL does not point to a valid GBFS feed** and **This GBFS feed is already configured** are explained in [Configuration](configuration.md#setup-errors).
+| Error Message | Cause | What to Check |
+|---|---|---|
+| **Failed to connect to the feed** | The server timed out (30 s limit) or returned an HTTP error (404, 500, 503). | Open the feed URL in a browser. Verify Home Assistant has internet access. If the operator's server is down, retry later. |
+| **The URL does not point to a valid GBFS feed** | URL returned non-JSON data, is missing `station_information` or `station_status`, or has zero stations. | Ensure you entered the root `gbfs.json` URL (not a sub-feed like `station_status.json`). Verify the system has physical docking stations. |
+| **This GBFS feed is already configured** | A config entry for this feed already exists. | Use **Configure** on the existing entry to select additional stations. |
 
-## The entry keeps retrying setup
+## Startup Retries
 
-When the entry starts, the integration downloads `gbfs.json`, `station_information.json` and `station_status.json`. If any of these fails, Home Assistant shows the error on the entry and retries the setup in the background, waiting longer each time. The entry sets itself up once the feed answers again; you don't need to do anything. If it never does, open the feed URL in a browser and check the [debug logs](#debug-logs).
+If initial connection to `gbfs.json` or `station_information.json` fails on Home Assistant startup, Home Assistant marks the entry as retrying and attempts reconnection with exponential backoff. The entry initializes automatically once the feed responds.
 
-## All entities are unavailable
+## All Entities Are Unavailable
 
-The latest update failed, for example because the operator's server is down or answered with an error page. The integration tries again at the next update, and the entities come back on their own. The log shows `Error fetching gbfs data` when updates start failing, and `Fetching gbfs data recovered` once they work again.
+Indicates that recent polling requests failed (operator server outage, network interruption, or HTTP errors):
 
-## One station's entities are unavailable
+- The integration continues polling at the normal interval. Entities automatically restore as soon as the feed responds.
+- Check debug logs for `Error fetching gbfs data`. When connection recovers, the log will record `Fetching gbfs data recovered`.
 
-The station is missing from the latest `station_status.json`. Operators remove stations that are closed, being moved or under maintenance. Check the operator's app; the entities come back with the station. If it's gone for good, remove it with [Configure](configuration.md#change-stations).
+## One Station Is Unavailable
 
-## A sensor is unknown
+The operator omitted this specific station from the latest `station_status.json`. Bike-share operators often remove stations during maintenance, seasonal closures, or relocation:
 
-- **Occupancy** is unknown when the station has neither bikes nor free docks, or the feed leaves out one of the two counts. See [Occupancy](entities.md#occupancy).
-- **Docks available** is unknown for stations that don't report docks, such as stations with unlimited docking capacity.
-- **Last reported** is unknown if the feed's time has no time zone offset, which GBFS 3.0 requires.
+- The entities restore automatically once the operator includes the station in updates again.
+- If the station was permanently decommissioned, remove it via **Configure** on the integration entry.
 
-## A sensor is missing
+## Sensor Displays Unknown State
 
-Bikes disabled and Docks disabled are only created when the feed publishes their fields, and E-bikes available when the feed counts e-bikes; see [E-bikes](feeds.md#e-bikes). Check `published_fields` and `ebike_vehicle_types` in the [diagnostics](#diagnostics).
+- **Occupancy:** Displays `unknown` when a station reports zero total capacity (0 available bikes and 0 docks, such as closed stations), or when the feed does not report dock counts.
+- **Docks available:** Displays `unknown` if the operator does not report dock capacity (e.g., valet stations or virtual docks).
+- **Last reported:** Displays `unknown` if a GBFS 3.0 timestamp lacks a required timezone offset.
 
-- If the log shows `Not counting e-bikes by vehicle type`, the integration couldn't download `vehicle_types.json` when the entry started. Reload the entry with **⋮ → Reload** to try again.
-- If the operator started publishing a field after you set up the integration, reload the entry too.
+## Sensor Is Missing
 
-## A station is missing from Configure, or names are out of date
+- **E-bikes available:** Only created if the feed reports `num_ebikes_available` or defines e-bike types in `vehicle_types.json`.
+- **Disabled counts:** `bikes_disabled` and `docks_disabled` are only created if the operator publishes those fields.
+- **Operator updates:** If an operator recently added new fields, reload the integration via **⋮ → Reload** to discover them.
 
-The integration loads the station list, names and coordinates when the entry starts. Reload the entry with **⋮ → Reload**, then open **Configure** again.
+## Stations Missing from Selection or Renamed
 
-## A station isn't on the map
+Station names, locations, and the selectable station list are loaded once when the integration initializes. If the operator renames or adds stations, reload the integration via **⋮ → Reload** to update metadata.
 
-Only the **Bikes available** sensor has coordinates, so add that entity to the map card. If the feed has no coordinates for the station, it can't have a marker.
+## Station Missing on Map Card
 
-## The values look old
+Ensure you added the station's **Bikes available** (`_bikes_available`) entity to the map card. Coordinates are attached exclusively to this sensor so each station produces a single marker.
 
-Check the station's **Last reported** time. If it's old, the operator's data is stale, and the integration can't do better. Otherwise, remember that the integration updates every 60 seconds, or at the feed's `ttl`, while the operator's app may update more often.
+## Stale or Delayed Values
 
-## A removed station's device is still listed
+Station sensor values reflect the data published by the operator. Check the **Last reported** timestamp: if that timestamp is old, the operator's backend is not updating. The integration checks for updates every 60 seconds (or the feed's TTL).
 
-Home Assistant keeps the device of a station you removed with **Configure**, in case you add it back. To delete it, open the device and select **⋮ → Delete**; its entities go with it.
+## Removed Station Device Still Visible
 
-If deleting fails, the station is still selected, and its device would come back at the next reload. Remove the station with [Configure](configuration.md#change-stations) first.
+When a station is unselected in **Configure**, Home Assistant retains its device in an unavailable state to preserve history and automations:
 
-## Report a problem { #report-a-problem }
+1. Ensure the station is unchecked in **Configure** on the integration card.
+2. Open the station's device page and select **⋮ → Delete**.
 
-[Open an issue](https://github.com/blunan/gbfs-ha-integration/issues) on GitHub with:
+## Reporting Issues { #report-a-problem }
 
-- Your Home Assistant version, shown under **Settings → About**, and the GBFS version, shown in the Marketplace or HACS.
-- The feed URL.
-- The [diagnostics](#diagnostics) file, and the [debug log](#debug-logs) if the problem is about updates.
-- What you expected, and what happened instead.
+If you encounter an issue not resolved above, [open an issue on GitHub](https://github.com/blunan/gbfs-ha-integration/issues) with:
+
+1. Home Assistant version and integration version.
+2. The `gbfs.json` feed URL.
+3. The downloaded [Diagnostics](#diagnostics) file.
+4. Relevant excerpts from the [Debug logs](#debug-logs).
+5. Description of expected versus observed behavior.

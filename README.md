@@ -57,7 +57,7 @@ The [installation guide](https://gbfs-ha-integration.blunan.com/installation/) a
 2. Paste the auto-discovery URL of your bike-share system, e.g. Ecobici CDMX:
    `https://gbfs.mex.lyftbikes.com/gbfs/gbfs.json`
 3. Select your stations by name from the multi-select list.
-4. Done — each station appears as a device. Use **Configure** on the entry to add/remove stations later, then delete a removed station's device from its page if you won't add it back.
+4. Done — each station appears as a device with its sensors. You can add or remove stations at any time via **Configure** on the integration entry.
 
 ### 🔍 Finding Your System's GBFS Feed
 
@@ -131,7 +131,7 @@ The [troubleshooting guide](https://gbfs-ha-integration.blunan.com/troubleshooti
 | 📊 [Dashboards and automations](https://gbfs-ha-integration.blunan.com/examples/) | Map, gauge, and statistics cards; commute alerts and stale-station checks |
 | 🌐 [Supported feeds](https://gbfs-ha-integration.blunan.com/feeds/) | GBFS versions, languages, fields read, e-bikes, and what isn't supported |
 | 🩺 [Troubleshooting](https://gbfs-ha-integration.blunan.com/troubleshooting/) | Diagnostics, debug logs, common problems, and reporting issues |
-| 🛠️ [Development](https://gbfs-ha-integration.blunan.com/development/) | Dev container, scripts, tests, how it works, CI, and releases |
+| 🛠️ [Development](https://gbfs-ha-integration.blunan.com/development/) | Dev container, scripts, tests, architecture, CI, and releases |
 
 ## 🤝 Contributing
 

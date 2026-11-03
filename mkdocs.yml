@@ -79,5 +79,4 @@ nav:
       - Troubleshooting: troubleshooting.md
   - Development:
       - How it works: architecture.md
-      - Development setup: development.md
-      - CI and releases: releasing.md
+      - Contributing & releases: development.md

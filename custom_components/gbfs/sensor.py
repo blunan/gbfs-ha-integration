@@ -1,4 +1,4 @@
-"""Sensors per station: bikes, e-bikes (if feed publishes them), docks, occupancy, and last report."""
+"""Sensors for GBFS stations."""
 
 from __future__ import annotations
 
@@ -30,13 +30,12 @@ from .entity import GbfsEntity
 
 @dataclass(frozen=True, kw_only=True)
 class GbfsSensorEntityDescription(SensorEntityDescription):
-    """Description of a GBFS sensor."""
+    """Description of a GBFS sensor entity."""
 
     value_fn: Callable[[StationStatus], StateType | datetime]
-    # Optional GBFS fields: the sensor is only created if a station reports it
+    # Optional fields are only created if reported by at least one station
     optional: bool = False
-    # Only one entity per station carries lat/lon so the map card
-    # shows a single marker per station
+    # Set on a single entity per station to avoid duplicate map markers
     has_location: bool = False
 
 
@@ -60,7 +59,7 @@ SENSORS: tuple[GbfsSensorEntityDescription, ...] = (
         translation_key="ebikes_available",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda station: station.ebikes_available,
-        # Only if the feed counts e-bikes, directly or by vehicle type
+        # Only created if the feed counts e-bikes
         optional=True,
     ),
     GbfsSensorEntityDescription(
@@ -103,7 +102,7 @@ SENSORS: tuple[GbfsSensorEntityDescription, ...] = (
 def _reported(
     coordinator: GbfsCoordinator, description: GbfsSensorEntityDescription
 ) -> bool:
-    """Whether any station in the feed has a value for the sensor."""
+    """Return True if any station reports a value for this sensor."""
     return any(
         description.value_fn(station) is not None
         for station in coordinator.data.values()
@@ -115,7 +114,7 @@ async def async_setup_entry(
     entry: GbfsConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Creates sensors for the selected stations."""
+    """Set up GBFS sensors for the selected stations."""
     coordinator = entry.runtime_data
     descriptions = [
         description
@@ -130,7 +129,7 @@ async def async_setup_entry(
 
 
 class GbfsSensor(GbfsEntity, SensorEntity):
-    """Sensor for a GBFS station."""
+    """Sensor entity for a GBFS station."""
 
     entity_description: GbfsSensorEntityDescription
 
@@ -140,7 +139,7 @@ class GbfsSensor(GbfsEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
-        """Lat/lon from station_information; allow showing the station on the map."""
+        """Return latitude and longitude coordinates for map display."""
         if not self.entity_description.has_location:
             return None
         info = self.coordinator.station_info.get(self._station_id, {})

@@ -1,52 +1,56 @@
 # GBFS for Home Assistant
 
-Live bike, e-bike and dock availability in Home Assistant for the stations you use, from **any** bike-share system that publishes a [GBFS](https://gbfs.org/) feed: Ecobici in Mexico City, Citi Bike, Vélib', Divvy and hundreds more.
+Live bike, e-bike, and dock availability in Home Assistant for the stations you use, from any bike-share system publishing an open [GBFS](https://gbfs.org/) feed — including Ecobici, Citi Bike, Vélib', Divvy, and hundreds more worldwide.
 
-Paste the system's `gbfs.json` URL, pick your stations by name, and each station becomes a device with its own sensors. You don't need YAML or an API key.
+Paste your system's `gbfs.json` URL and choose your stations. Each station becomes a Home Assistant device with live availability sensors, map coordinates, and long-term statistics.
 
-[Install it](installation.md){ .md-button .md-button--primary }
-[Find your system's feed](configuration.md#find-your-feed){ .md-button }
+[Installation](installation.md){ .md-button .md-button--primary }
+[Configuration](configuration.md){ .md-button }
 
-## What you get
+## Highlights
 
-- **Setup from the UI.** Paste the feed URL and choose stations from a list sorted by name. Change them later with **Configure**, without removing anything.
-- **A device per station**, with sensors for available bikes and e-bikes, free docks, out-of-service bikes and docks, occupancy and the station's last report. Binary sensors show whether the station rents bikes and accepts returns.
-- **Any GBFS version.** 1.x, 2.x and 3.0 feeds give the same sensors, with station names in your language when the feed translates them.
-- **Only the sensors your feed can fill.** Optional sensors are created only when the feed publishes their fields. E-bikes are counted directly or by vehicle type.
-- **One request per update.** A single download of `station_status.json` every 60 seconds, or at the feed's `ttl` if that's longer, refreshes every station you picked.
-- **History and maps.** Counts and occupancy keep long-term statistics, and each station's bikes sensor carries its coordinates for the map card.
-- **Diagnostics** to download for bug reports, and the UI in English and Spanish.
+- **UI setup:** Enter the feed URL and choose stations from a multi-select list. Add or remove stations later at any time.
+- **Universal GBFS support:** Seamlessly handles GBFS 1.x, 2.x, and 3.0 feeds, including localized station names.
+- **Feed-aware entities:** Automatically adapts to what each system publishes (standard bikes, e-bikes, free docks, out-of-service equipment).
+- **Efficient polling:** A single request to `station_status.json` every 60 seconds (or the feed's `ttl`) updates all configured stations at once.
+- **Ready for dashboards and maps:** Station coordinates attach to the bikes sensor for map cards, and numeric sensors support long-term statistics.
+- **Built-in diagnostics:** Export integration state and raw station records directly from the UI for easy troubleshooting.
 
 ## How it maps
 
 ```text
-Ecobici (one GBFS feed)               → one integration entry
-├── CE-003 Reforma - Insurgentes      → one device
-│   ├── Bikes available               → sensor
-│   ├── Docks available               → sensor
-│   ├── Occupancy                     → sensor
-│   ├── …
-│   ├── Renting                       → binary sensor
-│   └── Returning                     → binary sensor
-└── CE-029 Reforma - Bucareli         → one device
+GBFS Feed (e.g., Ecobici)             → Integration entry
+├── Station 1 (CE-003 Reforma)         → Device
+│   ├── Bikes available                → Sensor (with coordinates)
+│   ├── E-bikes available              → Sensor (if supported)
+│   ├── Docks available                → Sensor
+│   ├── Occupancy                      → Sensor (%)
+│   ├── Last reported                  → Sensor (diagnostic timestamp)
+│   ├── Renting                        → Binary sensor
+│   └── Returning                      → Binary sensor
+└── Station 2 (CE-029 Bucareli)        → Device
     └── …
 ```
 
-[Entities](entities.md) describes every sensor.
+## Requirements & Scope
 
-## What you need
+- **Home Assistant:** Version 2026.3 or newer.
+- **Feed requirements:** Publicly accessible `gbfs.json` URL for a station-based bike-share system (no login, API key, or custom headers required).
+- **Not supported:** Dockless-only systems that publish free-floating vehicles without stations (`free_bike_status.json` only), and feeds requiring authentication.
 
-- Home Assistant 2026.3 or later.
-- The `gbfs.json` URL of a **station-based** bike-share system with a **public** feed. [Configuration](configuration.md#find-your-feed) shows where to find it.
-- Internet access from Home Assistant to the operator's server.
+## Documentation Overview
 
-## What isn't supported
-
-- **Dockless systems**, which publish free-floating vehicles and no stations.
-- **Feeds behind authentication**: API keys, logins or custom headers.
-
-See [Supported feeds](feeds.md) for details.
+| Guide | Description |
+|---|---|
+| [Installation](installation.md) | Install via Marketplace, HACS, or manual file copy |
+| [Configuration](configuration.md) | Find feed URLs, add the integration, and manage stations |
+| [Entities](entities.md) | Sensor definitions, occupancy formulas, and status states |
+| [Dashboards and Automations](examples.md) | Map cards, gauge displays, and commute alert automations |
+| [Supported Feeds](feeds.md) | Technical reference on GBFS specifications, fields, and versions |
+| [Troubleshooting](troubleshooting.md) | Resolve setup errors, missing entities, and download diagnostics |
+| [How It Works](architecture.md) | Technical architecture, feed parsing, and coordinator lifecycle |
+| [Development & Contributing](development.md) | Local development setup, testing, code style, CI, and releases |
 
 ## License
 
-MIT, see [LICENSE](https://github.com/blunan/gbfs-ha-integration/blob/main/LICENSE). Not affiliated with or endorsed by MobilityData, the Home Assistant project or any bike-share operator.
+MIT License. This project is independent and not affiliated with or endorsed by MobilityData, the Home Assistant project, or any bike-share operator.

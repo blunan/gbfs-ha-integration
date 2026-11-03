@@ -1,4 +1,4 @@
-"""Binary sensors per station: is_renting and is_returning."""
+"""Binary sensors for GBFS stations."""
 
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ async def async_setup_entry(
     entry: GbfsConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Creates binary sensors for the selected stations."""
+    """Set up binary sensors for the selected stations."""
     coordinator = entry.runtime_data
     async_add_entities(
         GbfsBinarySensor(coordinator, station_id, description)

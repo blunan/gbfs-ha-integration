@@ -12,7 +12,7 @@ from .coordinator import GbfsConfigEntry
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: GbfsConfigEntry
 ) -> dict[str, Any]:
-    """Diagnostics of the config entry: feed state and coordinator data."""
+    """Return diagnostics for a config entry."""
     coordinator = entry.runtime_data
     return {
         "entry": {
