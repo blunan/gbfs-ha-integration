@@ -12,7 +12,7 @@ Install GBFS using the method corresponding to your Home Assistant version.
 
 === "HACS (Home Assistant 2026.3 – 2026.10)"
 
-    [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=blunan&repository=gbfs-ha-integration&category=integration){ .md-button .md-button--primary }
+    [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=blunan&repository=gbfs-ha-integration&category=integration)
 
     Or install manually via HACS:
 

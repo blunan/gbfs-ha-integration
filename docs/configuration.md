@@ -24,7 +24,7 @@ To find your system's auto-discovery URL:
 
 ## Add the Integration
 
-[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=gbfs){ .md-button .md-button--primary }
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=gbfs)
 
 Or navigate to **Settings → Devices & services**, select **Add integration**, and search for **GBFS**.
 
