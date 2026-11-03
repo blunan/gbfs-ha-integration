@@ -1,0 +1,83 @@
+# MkDocs configuration for https://gbfs-ha-integration.blunan.com/.
+site_name: GBFS for Home Assistant
+site_description: Live bike, e-bike and dock availability in Home Assistant for stations from any GBFS bike-share feed.
+site_url: https://gbfs-ha-integration.blunan.com/
+repo_url: https://github.com/blunan/gbfs-ha-integration
+repo_name: blunan/gbfs-ha-integration
+edit_uri: ""
+copyright: Copyright &copy; 2026 Brayan Luna &middot; MIT
+exclude_docs: |
+  requirements.*
+
+theme:
+  name: material
+  font: false                                  # system fonts (no Google Fonts requests)
+  favicon: assets/icon.png                     # copy of custom_components/gbfs/brand/icon.png
+  icon:
+    logo: material/bicycle
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme)"
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-4
+        name: Follow the system setting
+  features:
+    - navigation.top
+    - navigation.footer
+    - content.code.copy
+    - content.tabs.link
+    - search.highlight
+    - toc.follow
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: installation.md
+      - Configuration: configuration.md
+  - Using it:
+      - Entities: entities.md
+      - Dashboards and automations: examples.md
+      - Supported feeds: feeds.md
+      - Troubleshooting: troubleshooting.md
+  - Development:
+      - How it works: architecture.md
+      - Development setup: development.md
+      - CI and releases: releasing.md
