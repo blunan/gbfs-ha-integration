@@ -1,0 +1,16 @@
+{
+  "last_updated": "2026-08-04T10:15:48Z",
+  "ttl": 60,
+  "version": "3.0",
+  "data": {
+    "system_id": "example_bikes",
+    "languages": ["en", "es"],
+    "name": [
+      { "text": "Example Bikes", "language": "en" },
+      { "text": "Bicis de Ejemplo", "language": "es" }
+    ],
+    "opening_hours": "24/7",
+    "feed_contact_email": "gbfs@example.com",
+    "timezone": "America/Mexico_City"
+  }
+}

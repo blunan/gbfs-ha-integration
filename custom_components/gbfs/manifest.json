@@ -3,7 +3,7 @@
   "name": "GBFS",
   "codeowners": ["@blunan"],
   "config_flow": true,
-  "documentation": "https://github.com/blunan/gbfs-ha-integration",
+  "documentation": "https://gbfs-ha-integration.blunan.com/",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/blunan/gbfs-ha-integration/issues",

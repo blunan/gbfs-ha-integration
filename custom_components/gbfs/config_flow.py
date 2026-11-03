@@ -1,4 +1,4 @@
-"""GBFS config flow: URL of gbfs.json → multi-select of stations by name."""
+"""Config flow for the GBFS integration."""
 
 from __future__ import annotations
 
@@ -31,15 +31,25 @@ from .const import (
     GbfsError,
     InvalidFeed,
 )
-from .coordinator import GbfsConfigEntry, async_fetch_json, resolve_feeds
+from .coordinator import (
+    GbfsConfigEntry,
+    async_fetch_json,
+    localized_text,
+    resolve_feeds,
+)
 
 
 def _normalize_url(url: str) -> str:
-    """Normalized feed URL for the entry's unique_id (scheme/host are case-insensitive)."""
+    """Normalize feed URL for unique ID matching (scheme and host are lowercased)."""
     parts = urlparse(url)
     return urlunparse(
         parts._replace(scheme=parts.scheme.lower(), netloc=parts.netloc.lower())
     ).rstrip("/")
+
+
+def _station_label(station: dict[str, Any], language: str | None) -> str:
+    """Return station name for the selector, or station ID if unnamed."""
+    return localized_text(station.get("name"), language) or str(station["station_id"])
 
 
 USER_SCHEMA = vol.Schema(
@@ -54,7 +64,7 @@ USER_SCHEMA = vol.Schema(
 def _stations_schema(
     stations: dict[str, str], selected: list[str] | None = None
 ) -> vol.Schema:
-    """Multi-select of stations ordered by name."""
+    """Build station selector schema ordered by name."""
     options = [
         SelectOptionDict(value=station_id, label=name)
         for station_id, name in sorted(stations.items(), key=lambda item: item[1])
@@ -77,7 +87,7 @@ def _stations_schema(
 
 
 class GbfsConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Step 1: Feed URL. Step 2: Station selection."""
+    """Handle GBFS config flow."""
 
     VERSION = 1
 
@@ -89,7 +99,7 @@ class GbfsConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Asks for the gbfs.json URL and performs feed auto-discovery."""
+        """Handle initial step: validate feed URL and discover stations."""
         errors: dict[str, str] = {}
         if user_input is not None:
             url = user_input[CONF_URL].strip()
@@ -110,10 +120,9 @@ class GbfsConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_feed"
             else:
                 self._url = url
+                language = self.hass.config.language
                 self._stations = {
-                    str(station["station_id"]): str(
-                        station.get("name", station["station_id"])
-                    )
+                    str(station["station_id"]): _station_label(station, language)
                     for station in stations
                     if isinstance(station, dict) and "station_id" in station
                 }
@@ -128,20 +137,22 @@ class GbfsConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
     async def _async_system_name(self, session: Any, feeds: dict[str, str]) -> str:
-        """System name (system_information.json) for the entry title."""
+        """Fetch system name for the entry title."""
         if url := feeds.get(FEED_SYSTEM_INFORMATION):
             try:
-                info = await async_fetch_json(session, url)
-                if name := info.get("data", {}).get("name"):
-                    return str(name)
+                data = (await async_fetch_json(session, url)).get("data")
             except GbfsError:
-                pass
+                data = None
+            if isinstance(data, dict) and (
+                name := localized_text(data.get("name"), self.hass.config.language)
+            ):
+                return name
         return urlparse(self._url).hostname or "GBFS"
 
     async def async_step_stations(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Multi-select of stations by name."""
+        """Handle station selection step."""
         if user_input is not None:
             return self.async_create_entry(
                 title=self._title,
@@ -159,7 +170,7 @@ class GbfsConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 class GbfsOptionsFlow(OptionsFlow):
-    """Add/remove stations without reinstalling the integration."""
+    """Handle GBFS options flow to add or remove stations."""
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -171,8 +182,8 @@ class GbfsOptionsFlow(OptionsFlow):
 
         coordinator = self.config_entry.runtime_data
         stations = {
-            station_id: str(info.get("name", station_id))
-            for station_id, info in coordinator.station_info.items()
+            station_id: coordinator.station_name(station_id) or station_id
+            for station_id in coordinator.station_info
         }
         selected = [
             station_id

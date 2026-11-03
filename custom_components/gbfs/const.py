@@ -12,6 +12,7 @@ DEFAULT_SCAN_INTERVAL = 60
 FEED_STATION_INFORMATION = "station_information"
 FEED_STATION_STATUS = "station_status"
 FEED_SYSTEM_INFORMATION = "system_information"
+FEED_VEHICLE_TYPES = "vehicle_types"
 
 
 class GbfsError(Exception):

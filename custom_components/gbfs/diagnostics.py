@@ -12,7 +12,7 @@ from .coordinator import GbfsConfigEntry
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, entry: GbfsConfigEntry
 ) -> dict[str, Any]:
-    """Diagnostics of the config entry: feed state and coordinator data."""
+    """Return diagnostics for a config entry."""
     coordinator = entry.runtime_data
     return {
         "entry": {
@@ -26,6 +26,7 @@ async def async_get_config_entry_diagnostics(
         ),
         "last_update_success": coordinator.last_update_success,
         "published_fields": sorted(coordinator.published_fields),
+        "ebike_vehicle_types": sorted(coordinator.ebike_types),
         "station_info": coordinator.station_info,
-        "station_status": coordinator.data,
+        "station_status": coordinator.raw_status,
     }

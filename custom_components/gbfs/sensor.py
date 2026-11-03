@@ -1,4 +1,4 @@
-"""Sensors per station: bikes, e-bikes (if feed publishes them), docks, occupancy, and last report."""
+"""Sensors for GBFS stations."""
 
 from __future__ import annotations
 
@@ -22,36 +22,28 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
-from homeassistant.util import dt as dt_util
 
 from .const import CONF_STATIONS
-from .coordinator import GbfsConfigEntry, GbfsCoordinator
+from .coordinator import GbfsConfigEntry, GbfsCoordinator, StationStatus
 from .entity import GbfsEntity
 
 
 @dataclass(frozen=True, kw_only=True)
 class GbfsSensorEntityDescription(SensorEntityDescription):
-    """Description of a GBFS sensor."""
+    """Description of a GBFS sensor entity."""
 
-    value_fn: Callable[[dict[str, Any]], StateType | datetime]
-    exists_fn: Callable[[GbfsCoordinator], bool] = lambda _: True
-    # Only one entity per station carries lat/lon so the map card
-    # shows a single marker per station
+    value_fn: Callable[[StationStatus], StateType | datetime]
+    # Optional fields are only created if reported by at least one station
+    optional: bool = False
+    # Set on a single entity per station to avoid duplicate map markers
     has_location: bool = False
 
 
-def _occupancy(status: dict[str, Any]) -> float | None:
-    bikes = status.get("num_bikes_available")
-    docks = status.get("num_docks_available")
+def _occupancy(station: StationStatus) -> float | None:
+    bikes, docks = station.bikes_available, station.docks_available
     if bikes is None or docks is None or bikes + docks == 0:
         return None
     return round(bikes / (bikes + docks) * 100, 1)
-
-
-def _last_reported(status: dict[str, Any]) -> datetime | None:
-    if (timestamp := status.get("last_reported")) is None:
-        return None
-    return dt_util.utc_from_timestamp(timestamp)
 
 
 SENSORS: tuple[GbfsSensorEntityDescription, ...] = (
@@ -59,44 +51,36 @@ SENSORS: tuple[GbfsSensorEntityDescription, ...] = (
         key="bikes_available",
         translation_key="bikes_available",
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda status: status.get("num_bikes_available"),
+        value_fn=lambda station: station.bikes_available,
         has_location=True,
     ),
     GbfsSensorEntityDescription(
         key="ebikes_available",
         translation_key="ebikes_available",
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda status: status.get("num_ebikes_available"),
-        # Only if feed publishes e-bikes (varies by operator's GBFS version)
-        exists_fn=lambda coordinator: (
-            "num_ebikes_available" in coordinator.published_fields
-        ),
+        value_fn=lambda station: station.ebikes_available,
+        # Only created if the feed counts e-bikes
+        optional=True,
     ),
     GbfsSensorEntityDescription(
         key="bikes_disabled",
         translation_key="bikes_disabled",
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda status: status.get("num_bikes_disabled"),
-        # Optional field in GBFS spec
-        exists_fn=lambda coordinator: (
-            "num_bikes_disabled" in coordinator.published_fields
-        ),
+        value_fn=lambda station: station.bikes_disabled,
+        optional=True,
     ),
     GbfsSensorEntityDescription(
         key="docks_available",
         translation_key="docks_available",
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda status: status.get("num_docks_available"),
+        value_fn=lambda station: station.docks_available,
     ),
     GbfsSensorEntityDescription(
         key="docks_disabled",
         translation_key="docks_disabled",
         state_class=SensorStateClass.MEASUREMENT,
-        value_fn=lambda status: status.get("num_docks_disabled"),
-        # Optional field in GBFS spec
-        exists_fn=lambda coordinator: (
-            "num_docks_disabled" in coordinator.published_fields
-        ),
+        value_fn=lambda station: station.docks_disabled,
+        optional=True,
     ),
     GbfsSensorEntityDescription(
         key="occupancy",
@@ -110,9 +94,19 @@ SENSORS: tuple[GbfsSensorEntityDescription, ...] = (
         translation_key="last_reported",
         device_class=SensorDeviceClass.TIMESTAMP,
         entity_category=EntityCategory.DIAGNOSTIC,
-        value_fn=_last_reported,
+        value_fn=lambda station: station.last_reported,
     ),
 )
+
+
+def _reported(
+    coordinator: GbfsCoordinator, description: GbfsSensorEntityDescription
+) -> bool:
+    """Return True if any station reports a value for this sensor."""
+    return any(
+        description.value_fn(station) is not None
+        for station in coordinator.data.values()
+    )
 
 
 async def async_setup_entry(
@@ -120,18 +114,22 @@ async def async_setup_entry(
     entry: GbfsConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Creates sensors for the selected stations."""
+    """Set up GBFS sensors for the selected stations."""
     coordinator = entry.runtime_data
+    descriptions = [
+        description
+        for description in SENSORS
+        if not description.optional or _reported(coordinator, description)
+    ]
     async_add_entities(
         GbfsSensor(coordinator, station_id, description)
         for station_id in entry.options.get(CONF_STATIONS, [])
-        for description in SENSORS
-        if description.exists_fn(coordinator)
+        for description in descriptions
     )
 
 
 class GbfsSensor(GbfsEntity, SensorEntity):
-    """Sensor for a GBFS station."""
+    """Sensor entity for a GBFS station."""
 
     entity_description: GbfsSensorEntityDescription
 
@@ -141,7 +139,7 @@ class GbfsSensor(GbfsEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
-        """Lat/lon from station_information; allow showing the station on the map."""
+        """Return latitude and longitude coordinates for map display."""
         if not self.entity_description.has_location:
             return None
         info = self.coordinator.station_info.get(self._station_id, {})

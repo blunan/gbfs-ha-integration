@@ -16,10 +16,29 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 GBFS_URL = "https://gbfs.example.com/gbfs/gbfs.json"
 FEED_BASE = "https://gbfs.example.com/gbfs/en"
 
+GBFS_URL_V3 = "https://gbfs.example.com/gbfs/3.0/gbfs.json"
+FEED_BASE_V3 = "https://gbfs.example.com/gbfs/3.0"
+FEEDS_V3 = (
+    "system_information",
+    "vehicle_types",
+    "station_information",
+    "station_status",
+)
+
 
 def load_json_fixture(name: str) -> dict[str, Any]:
     """Loads a JSON fixture from tests/fixtures."""
     return json.loads((FIXTURES_DIR / name).read_text())
+
+
+def mock_v3_feeds(aioclient_mock, *, skip: tuple[str, ...] = ()) -> None:
+    """Mocks the GBFS 3.0 feed with fixture data, except the feeds in `skip`."""
+    aioclient_mock.get(GBFS_URL_V3, json=load_json_fixture("gbfs_v3.json"))
+    for feed in FEEDS_V3:
+        if feed not in skip:
+            aioclient_mock.get(
+                f"{FEED_BASE_V3}/{feed}.json", json=load_json_fixture(f"{feed}_v3.json")
+            )
 
 
 @pytest.fixture(autouse=True)
@@ -48,6 +67,13 @@ def mock_feeds(aioclient_mock):
 
 
 @pytest.fixture
+def mock_feeds_v3(aioclient_mock):
+    """Mocks a GBFS 3.0 feed, with vehicle types, with fixture data."""
+    mock_v3_feeds(aioclient_mock)
+    return aioclient_mock
+
+
+@pytest.fixture
 def config_entry(hass) -> MockConfigEntry:
     """Config entry with stations 1 and 2 selected."""
     entry = MockConfigEntry(
@@ -56,6 +82,20 @@ def config_entry(hass) -> MockConfigEntry:
         data={CONF_URL: GBFS_URL},
         options={CONF_STATIONS: ["1", "2"]},
         unique_id=GBFS_URL.rstrip("/"),
+    )
+    entry.add_to_hass(hass)
+    return entry
+
+
+@pytest.fixture
+def config_entry_v3(hass) -> MockConfigEntry:
+    """Config entry for the GBFS 3.0 feed, with stations 1 and 2 selected."""
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Example Bikes",
+        data={CONF_URL: GBFS_URL_V3},
+        options={CONF_STATIONS: ["1", "2"]},
+        unique_id=GBFS_URL_V3,
     )
     entry.add_to_hass(hass)
     return entry

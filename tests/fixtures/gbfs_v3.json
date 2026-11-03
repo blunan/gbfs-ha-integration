@@ -9,6 +9,10 @@
         "url": "https://gbfs.example.com/gbfs/3.0/system_information.json"
       },
       {
+        "name": "vehicle_types",
+        "url": "https://gbfs.example.com/gbfs/3.0/vehicle_types.json"
+      },
+      {
         "name": "station_information",
         "url": "https://gbfs.example.com/gbfs/3.0/station_information.json"
       },
