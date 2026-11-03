@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
-from .coordinator import GbfsCoordinator
+from .coordinator import GbfsCoordinator, StationStatus
+
+# Status of a station missing from the latest poll: every value unknown
+NO_STATUS = StationStatus()
 
 
 def station_identifier(entry_id: str, station_id: str) -> str:
@@ -33,10 +34,9 @@ class GbfsEntity(CoordinatorEntity[GbfsCoordinator]):
         self._station_id = station_id
         identifier = station_identifier(coordinator.config_entry.entry_id, station_id)
         self._attr_unique_id = f"{identifier}_{description.key}"
-        info = coordinator.station_info.get(station_id, {})
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, identifier)},
-            name=info.get("name", f"Station {station_id}"),
+            name=coordinator.station_name(station_id) or f"Station {station_id}",
             manufacturer="GBFS",
             model="Bike share station",
         )
@@ -47,6 +47,6 @@ class GbfsEntity(CoordinatorEntity[GbfsCoordinator]):
         return super().available and self._station_id in self.coordinator.data
 
     @property
-    def station_status(self) -> dict[str, Any]:
+    def station_status(self) -> StationStatus:
         """Current status of the station in station_status.json."""
-        return self.coordinator.data.get(self._station_id, {})
+        return self.coordinator.data.get(self._station_id, NO_STATUS)

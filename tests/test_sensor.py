@@ -38,6 +38,39 @@ async def test_sensor_values(hass: HomeAssistant, mock_feeds, config_entry) -> N
     assert hass.states.get("sensor.station_gamma_bikes_available") is None
 
 
+async def test_sensor_values_v3(
+    hass: HomeAssistant, mock_feeds_v3, config_entry_v3
+) -> None:
+    """GBFS 3.0: renamed fields and RFC 3339 times."""
+    await _setup(hass, config_entry_v3)
+
+    assert hass.states.get("sensor.station_alpha_bikes_available").state == "9"
+    # GBFS 3.0 has no num_ebikes_available: no e-bikes sensor
+    assert hass.states.get("sensor.station_alpha_e_bikes_available") is None
+    assert hass.states.get("sensor.station_alpha_bikes_disabled").state == "2"
+    assert hass.states.get("sensor.station_alpha_docks_available").state == "30"
+    assert hass.states.get("sensor.station_alpha_docks_disabled").state == "1"
+    assert hass.states.get("sensor.station_alpha_occupancy").state == "23.1"
+    assert (
+        hass.states.get("sensor.station_alpha_last_reported").state
+        == "2026-08-04T10:11:55+00:00"
+    )
+    assert hass.states.get("binary_sensor.station_alpha_renting").state == "on"
+    assert hass.states.get("binary_sensor.station_alpha_returning").state == "on"
+
+    # Empty station: unknown occupancy; its time has an offset
+    assert hass.states.get("sensor.station_beta_occupancy").state == "unknown"
+    assert (
+        hass.states.get("sensor.station_beta_last_reported").state
+        == "2026-08-04T10:11:40+00:00"
+    )
+    assert hass.states.get("binary_sensor.station_beta_renting").state == "off"
+
+    # The bikes sensor still carries the station's coordinates
+    bikes = hass.states.get("sensor.station_alpha_bikes_available")
+    assert bikes.attributes["latitude"] == 19.416795
+
+
 async def test_bikes_sensor_exposes_location(
     hass: HomeAssistant, mock_feeds, config_entry
 ) -> None:

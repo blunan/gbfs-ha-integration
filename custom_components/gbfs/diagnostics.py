@@ -27,5 +27,5 @@ async def async_get_config_entry_diagnostics(
         "last_update_success": coordinator.last_update_success,
         "published_fields": sorted(coordinator.published_fields),
         "station_info": coordinator.station_info,
-        "station_status": coordinator.data,
+        "station_status": coordinator.raw_status,
     }

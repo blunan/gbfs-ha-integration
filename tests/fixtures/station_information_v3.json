@@ -1,0 +1,36 @@
+{
+  "last_updated": "2026-08-04T10:15:48Z",
+  "ttl": 60,
+  "version": "3.0",
+  "data": {
+    "stations": [
+      {
+        "station_id": "1",
+        "name": [
+          { "text": "Station Alpha", "language": "en" },
+          { "text": "Estación Alfa", "language": "es" }
+        ],
+        "lat": 19.416795,
+        "lon": -99.192508,
+        "capacity": 39
+      },
+      {
+        "station_id": "2",
+        "name": [
+          { "text": "Station Beta", "language": "en" },
+          { "text": "Estación Beta", "language": "es" }
+        ],
+        "lat": 19.42,
+        "lon": -99.19,
+        "capacity": 25
+      },
+      {
+        "station_id": "3",
+        "name": [{ "text": "Estación Gamma", "language": "es" }],
+        "lat": 19.43,
+        "lon": -99.18,
+        "capacity": 20
+      }
+    ]
+  }
+}

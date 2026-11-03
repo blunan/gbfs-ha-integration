@@ -31,7 +31,12 @@ from .const import (
     GbfsError,
     InvalidFeed,
 )
-from .coordinator import GbfsConfigEntry, async_fetch_json, resolve_feeds
+from .coordinator import (
+    GbfsConfigEntry,
+    async_fetch_json,
+    localized_text,
+    resolve_feeds,
+)
 
 
 def _normalize_url(url: str) -> str:
@@ -40,6 +45,11 @@ def _normalize_url(url: str) -> str:
     return urlunparse(
         parts._replace(scheme=parts.scheme.lower(), netloc=parts.netloc.lower())
     ).rstrip("/")
+
+
+def _station_label(station: dict[str, Any], language: str | None) -> str:
+    """Station name for the picker, or its ID if the feed gives no name."""
+    return localized_text(station.get("name"), language) or str(station["station_id"])
 
 
 USER_SCHEMA = vol.Schema(
@@ -110,10 +120,9 @@ class GbfsConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_feed"
             else:
                 self._url = url
+                language = self.hass.config.language
                 self._stations = {
-                    str(station["station_id"]): str(
-                        station.get("name", station["station_id"])
-                    )
+                    str(station["station_id"]): _station_label(station, language)
                     for station in stations
                     if isinstance(station, dict) and "station_id" in station
                 }
@@ -131,11 +140,13 @@ class GbfsConfigFlow(ConfigFlow, domain=DOMAIN):
         """System name (system_information.json) for the entry title."""
         if url := feeds.get(FEED_SYSTEM_INFORMATION):
             try:
-                info = await async_fetch_json(session, url)
-                if name := info.get("data", {}).get("name"):
-                    return str(name)
+                data = (await async_fetch_json(session, url)).get("data")
             except GbfsError:
-                pass
+                data = None
+            if isinstance(data, dict) and (
+                name := localized_text(data.get("name"), self.hass.config.language)
+            ):
+                return name
         return urlparse(self._url).hostname or "GBFS"
 
     async def async_step_stations(
@@ -171,8 +182,8 @@ class GbfsOptionsFlow(OptionsFlow):
 
         coordinator = self.config_entry.runtime_data
         stations = {
-            station_id: str(info.get("name", station_id))
-            for station_id, info in coordinator.station_info.items()
+            station_id: coordinator.station_name(station_id) or station_id
+            for station_id in coordinator.station_info
         }
         selected = [
             station_id
