@@ -97,7 +97,7 @@ The container uses Python 3.14 (Debian trixie, matching current Home Assistant),
 ```
 /
 ├─ .devcontainer/              # Dev container definition (Python 3.14, port 8123)
-├─ .github/workflows/          # CI: lint + pytest, hassfest & HACS validation
+├─ .github/workflows/          # CI: lint + pytest, hassfest & HACS validation, releases
 ├─ config/                     # HA config used by scripts/develop
 ├─ custom_components/gbfs/
 │   ├─ __init__.py             # Config entry setup, platform forwarding
@@ -126,3 +126,10 @@ scripts/test
 ```
 
 Every push and pull request runs the suite plus Ruff on GitHub Actions (**Test** workflow), and the **Validate** workflow runs [hassfest](https://developers.home-assistant.io/blog/2020/04/16/hassfest/) and HACS validation — also daily, to catch upstream requirement changes.
+
+### 🚀 Releasing
+
+1. Open a PR that bumps `version` in `custom_components/gbfs/manifest.json` and merge it to `main`.
+2. Tag the merge commit and push the tag: `git tag vX.Y.Z && git push origin vX.Y.Z`.
+
+The **Release** workflow checks that the tag matches the manifest version, then publishes a GitHub release with generated notes (tags containing a hyphen, such as `v0.2.0-rc1`, are marked as pre-releases). HACS installs from these releases.
