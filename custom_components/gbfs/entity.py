@@ -12,6 +12,11 @@ from .const import DOMAIN
 from .coordinator import GbfsCoordinator
 
 
+def station_identifier(entry_id: str, station_id: str) -> str:
+    """Device identifier of a station, scoped to its entry: systems reuse IDs."""
+    return f"{entry_id}_{station_id}"
+
+
 class GbfsEntity(CoordinatorEntity[GbfsCoordinator]):
     """Base for all entities of a GBFS station."""
 
@@ -26,12 +31,11 @@ class GbfsEntity(CoordinatorEntity[GbfsCoordinator]):
         super().__init__(coordinator)
         self.entity_description = description
         self._station_id = station_id
-        self._attr_unique_id = (
-            f"{coordinator.config_entry.entry_id}_{station_id}_{description.key}"
-        )
+        identifier = station_identifier(coordinator.config_entry.entry_id, station_id)
+        self._attr_unique_id = f"{identifier}_{description.key}"
         info = coordinator.station_info.get(station_id, {})
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, f"{coordinator.config_entry.entry_id}_{station_id}")},
+            identifiers={(DOMAIN, identifier)},
             name=info.get("name", f"Station {station_id}"),
             manufacturer="GBFS",
             model="Bike share station",

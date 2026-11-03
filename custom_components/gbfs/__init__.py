@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
 
+from .const import CONF_STATIONS, DOMAIN
 from .coordinator import GbfsConfigEntry, GbfsCoordinator
+from .entity import station_identifier
 
 PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR]
 
@@ -29,3 +32,21 @@ async def _async_update_listener(hass: HomeAssistant, entry: GbfsConfigEntry) ->
 async def async_unload_entry(hass: HomeAssistant, entry: GbfsConfigEntry) -> bool:
     """Unloads a config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: GbfsConfigEntry, device_entry: dr.AnyDeviceEntry
+) -> bool:
+    """Allows deleting the device of a station that is no longer selected.
+
+    A selected station's device would come back with the next reload, so the
+    station has to be unselected in the options flow first.
+    """
+    selected = {
+        station_identifier(entry.entry_id, station_id)
+        for station_id in entry.options.get(CONF_STATIONS, [])
+    }
+    return not any(
+        domain == DOMAIN and identifier in selected
+        for domain, identifier in device_entry.identifiers
+    )
