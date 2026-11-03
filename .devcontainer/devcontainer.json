@@ -6,7 +6,7 @@
   ],
   "portsAttributes": {
     "8123": {
-      "label": "Home Assistant"
+      "label": "Home Assistant Dev"
     }
   },
   "mounts": [
@@ -22,6 +22,7 @@
         "ms-python.python",
         "charliermarsh.ruff",
         "anthropic.claude-code",
+        "editorConfig.EditorConfig",
         "gitHub.vscode-github-actions"
       ],
       "settings": {
