@@ -45,11 +45,6 @@ Install GBFS using the method corresponding to your Home Assistant version.
 
 Both Marketplace and HACS notify you when a new release is available under **Settings → Updates**. Review the release notes and install the update as usual.
 
-To opt into pre-releases (e.g., `0.2.0-rc1`):
-
-- **Marketplace:** Go to **Settings → Devices & services → Marketplace**, open the **GBFS** device, enable the disabled **Pre-release** switch entity, and turn it on.
-- **HACS:** Open the GBFS integration page in HACS, select **⋮ → Redownload**, and enable **Show beta versions**.
-
 ## Uninstall
 
 To completely remove the integration:

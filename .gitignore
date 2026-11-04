@@ -16,3 +16,7 @@ venv/
 # The docs site's build output and its Python environment (docs/development.md)
 site/
 .venv-docs/
+
+# Dev Container Features
+## As for now they are not project dependencies just dev tooling
+.devcontainer/devcontainer-lock.json

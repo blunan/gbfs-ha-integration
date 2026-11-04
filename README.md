@@ -47,7 +47,7 @@ Or add it manually:
 
 Copy `custom_components/gbfs/` into the `custom_components/` directory of your Home Assistant configuration and restart.
 
-The [installation guide](https://gbfs-ha-integration.blunan.com/installation/) also covers updates, pre-releases, and uninstalling.
+The [installation guide](https://gbfs-ha-integration.blunan.com/installation/) also covers updates and uninstalling.
 
 ## ⚙️ Configuration
 
@@ -125,7 +125,7 @@ The [troubleshooting guide](https://gbfs-ha-integration.blunan.com/troubleshooti
 
 | Page | What's in it |
 |------|--------------|
-| 📦 [Installation](https://gbfs-ha-integration.blunan.com/installation/) | Marketplace, HACS, and manual installs; updates, pre-releases, and uninstalling |
+| 📦 [Installation](https://gbfs-ha-integration.blunan.com/installation/) | Marketplace, HACS, and manual installs; updates and uninstalling |
 | ⚙️ [Configuration](https://gbfs-ha-integration.blunan.com/configuration/) | Finding your feed, setup errors, changing stations, and several systems |
 | 🚲 [Entities](https://gbfs-ha-integration.blunan.com/entities/) | Every sensor, occupancy, availability, update interval, and entity IDs |
 | 📊 [Dashboards and automations](https://gbfs-ha-integration.blunan.com/examples/) | Map, gauge, and statistics cards; commute alerts and stale-station checks |
