@@ -4,9 +4,6 @@ Live bike, e-bike, and dock availability in Home Assistant for the stations you 
 
 Paste your system's `gbfs.json` URL and choose your stations. Each station becomes a Home Assistant device with live availability sensors, map coordinates, and long-term statistics.
 
-[Installation](installation.md){ .md-button .md-button--primary }
-[Configuration](configuration.md){ .md-button }
-
 ## Highlights
 
 - **UI setup:** Enter the feed URL and choose stations from a multi-select list. Add or remove stations later at any time.

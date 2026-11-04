@@ -138,9 +138,20 @@ To validate links and formatting strictly (matching CI):
 .venv-docs/bin/mkdocs build --strict
 ```
 
+Without a local Python, preview it in a throwaway container on the same Python version as CI (`python-version` in `.github/workflows/docs.yml`):
+
+```sh
+docker run --rm -it -p 127.0.0.1:8000:8000 -v "$PWD:/work:ro" -w /work python:3.14-slim-trixie \
+  sh -c 'pip install -q --root-user-action=ignore --require-hashes -r docs/requirements.txt && mkdocs serve -a 0.0.0.0:8000'
+```
+
+Browse to `http://127.0.0.1:8000`. To run the strict build in the container, add `--site-dir /tmp/site`, since the checkout is mounted read-only.
+
 ### Updating Documentation Dependencies
 
 Dependency hashes are pinned in `docs/requirements.txt` from `docs/requirements.in`. To upgrade, update the version in `docs/requirements.in` and re-lock using the command specified in the file's header.
+
+The lock is resolved on the Python version that `.github/workflows/docs.yml` installs; change both together.
 
 ## CI Workflows
 

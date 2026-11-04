@@ -1,4 +1,4 @@
-# GBFS – Bike-Share Integration for Home Assistant
+# <img src="https://raw.githubusercontent.com/blunan/gbfs-ha-integration/main/custom_components/gbfs/brand/icon.png" alt="" width="32" height="32"> GBFS – Bike-Share Integration for Home Assistant
 
 [![Docs](https://img.shields.io/badge/docs-gbfs--ha--integration.blunan.com-526CFE?logo=materialformkdocs&logoColor=white)](https://gbfs-ha-integration.blunan.com/)
 [![Test](https://github.com/blunan/gbfs-ha-integration/actions/workflows/test.yml/badge.svg)](https://github.com/blunan/gbfs-ha-integration/actions/workflows/test.yml)
