@@ -55,18 +55,22 @@ To reload code edits, restart `scripts/develop` (Ctrl+C and re-run). To reset th
 
 ```text
 .
-├── .devcontainer/            Dev container configuration
-├── .github/workflows/        CI and release automation
-├── config/                   Local Home Assistant test configuration
-├── custom_components/gbfs/   Integration source code
-├── docs/                     Documentation source files
-├── scripts/                  Development helper scripts
-├── tests/                    pytest test suite and feed fixtures
-├── hacs.json                 HACS and Marketplace metadata
-├── mkdocs.yml                Documentation site configuration
-├── pyproject.toml            Tool settings (Ruff, pytest)
-├── renovate.json             Automated dependency update policy
-└── requirements.txt          Development dependencies
+├── .devcontainer/                 Dev container configuration
+├── .github/workflows/             CI and release automation
+├── config/                        Local Home Assistant test configuration
+├── custom_components/gbfs/        Integration source code
+├── docs/                          Documentation source files
+├── scripts/                       Development helper scripts
+├── tests/                         pytest test suite and feed fixtures
+├── .release-please-manifest.json  The last released version, kept by release-please
+├── AGENTS.md                      Instructions for AI coding agents
+├── CHANGELOG.md                   What changed in each version, kept by release-please
+├── hacs.json                      HACS and Marketplace metadata
+├── mkdocs.yml                     Documentation site configuration
+├── pyproject.toml                 Tool settings (Ruff, pytest)
+├── release-please-config.json     Release settings: changelog sections and version files
+├── renovate.json                  Automated dependency update policy
+└── requirements.txt               Development dependencies
 ```
 
 ## Code Style & Formatting
@@ -76,6 +80,7 @@ Code style is enforced via Ruff and configured in `pyproject.toml`:
 - **Rule sets:** Pyflakes (`F`), pycodestyle (`E`, `W`), isort (`I`), flake8-bugbear (`B`), flake8-simplify (`SIM`), and pyupgrade (`UP`) targeting Python 3.14.
 - **Formatting:** Handled automatically by `ruff format`.
 - **Indentation:** 4 spaces for Python; 2 spaces for JSON, YAML, and TOML; LF line endings.
+- **Commits:** Use [Conventional Commits](https://www.conventionalcommits.org/), such as `fix: …`, `docs: …`, or `chore(deps): …`. A pull request's title decides the next version; see the [release process](#release-process).
 
 Run `scripts/lint` before committing changes.
 
@@ -162,7 +167,7 @@ GitHub Actions runs automated checks on every pull request and push to `main`:
 | **Test** (`test.yml`) | Pull requests, pushes to `main` | Runs Ruff linter, formatting checks, and full pytest suite on Python 3.14. |
 | **Validate** (`validate.yml`) | Pull requests, pushes, daily schedule | Runs Home Assistant `hassfest` validation and HACS repository checks. |
 | **Docs** (`docs.yml`) | Pull requests modifying docs | Runs `mkdocs build --strict`. Pushes to `main` deploy the site to GitHub Pages. |
-| **Release** (`release.yml`) | Tag pushes (`v*`) | Builds and publishes GitHub release assets with automated release notes. |
+| **Release** (`release.yml`) | Pushes to `main` | Runs release-please, which keeps the release pull request up to date and, once it's merged, tags the version and publishes the GitHub release. |
 
 ## Dependency Updates
 
@@ -173,19 +178,15 @@ GitHub Actions runs automated checks on every pull request and push to `main`:
 - Pinned actions use immutable commit hashes.
 - Only releases at least 14 days old are proposed.
 - All dependency pull requests require manual review and passing CI before merging.
+- Updates are titled `chore(deps):` and release nothing: the integration has no runtime dependencies, so they only change development tooling.
 
 ## Release Process
 
-To publish a new version:
+Versions come from `.github/workflows/release.yml`, which runs [release-please](https://github.com/googleapis/release-please) on every push to `main`. Pull request titles follow [Conventional Commits](https://www.conventionalcommits.org/), and since `main` takes squash merges only, each title becomes the commit release-please reads:
 
-1. Update the `version` field in `custom_components/gbfs/manifest.json` in a pull request and merge it to `main`.
-2. Pull the latest `main` branch locally, create a matching Git tag, and push it:
+- `feat:` (new or changed behavior) proposes a minor version, and `fix:`, `perf:`, or `revert:` a patch. `feat!:` or a `BREAKING CHANGE:` footer proposes a major.
+- Other types (`docs:`, `ci:`, `chore:`, `refactor:`, `test:`, `build:`, `style:`) propose none.
 
-    ```sh
-    git switch main && git pull
-    git tag v0.2.0
-    git push origin v0.2.0
-    ```
+release-please keeps a release pull request open with the next version and its `CHANGELOG.md` entry. That pull request also bumps the `version` in `custom_components/gbfs/manifest.json`, so don't change it by hand. When a version should go out, merge the release pull request. That tags `vX.Y.Z` and publishes the [GitHub release](https://github.com/blunan/gbfs-ha-integration/releases), which Marketplace and HACS then offer as an update.
 
-3. The **Release** workflow validates that the tag matches `manifest.json` and publishes the GitHub release.
-4. Pre-releases are tagged with a suffix (e.g., `v0.2.0-rc1`) matching the manifest version (`0.2.0-rc1`).
+The workflow uses a GitHub App token (the `RELEASE_APP_CLIENT_ID` variable and the `RELEASE_APP_PRIVATE_KEY` secret), not `GITHUB_TOKEN`, because a pull request opened with `GITHUB_TOKEN` runs no workflows, so the required checks would never report on it.

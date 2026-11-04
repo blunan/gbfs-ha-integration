@@ -37,6 +37,7 @@ Read the relevant files and tests before changing behavior. Treat the repository
 - `pyproject.toml` — Ruff and pytest configuration.
 - `requirements.txt` — development/test dependencies.
 - `hacs.json` — HACS/Marketplace metadata.
+- `release-please-config.json`, `.release-please-manifest.json`, `CHANGELOG.md` — release automation; see [Versions and releases](#versions-and-releases).
 
 ## Architecture and invariants
 
@@ -189,8 +190,7 @@ Do not claim checks passed unless they were actually run.
 - Keep runtime dependencies minimal and justified; prefer Home Assistant-provided facilities.
 - Dependency updates are managed by Renovate. Review compatibility and CI results rather than accepting automated updates blindly.
 - GitHub Actions validates tests/style, Home Assistant/HACS metadata, documentation, and releases.
-- A release version must match `custom_components/gbfs/manifest.json`.
-- The documented release flow is: merge the manifest version update to `main`, create and push the matching `v<version>` tag, then let the release workflow publish assets. Pre-release suffixes must match between the manifest and tag.
+- Releases are automated by release-please, which keeps the version in `custom_components/gbfs/manifest.json`; see [Versions and releases](#versions-and-releases).
 
 ## Agent workflow
 
@@ -217,6 +217,24 @@ Before finishing:
 - Always use Conventional Commits spec.
 - Do not commit generated coverage output, local environment files, personal configuration, secrets or credentials.
 - Keep pull requests focused and explain any intentional compatibility impact.
+
+### Versions and releases
+
+`main` takes squash merges only, so a PR's title becomes its commit on `main`, and release-please reads that title to pick the next version. A new version means what users install (`custom_components/gbfs/`) changed:
+
+- `feat:`: new or changed behavior. Minor version.
+- `fix:`, `perf:`, `revert:`: a bug fix, a performance improvement, or a reverted change. Patch version.
+- `feat!:` / `fix!:`, or a `BREAKING CHANGE:` footer: a change that breaks existing setups, such as removing an entity or changing the config-entry contract without a migration. Major version.
+- `docs:`, `ci:`, `chore:`, `refactor:`, `test:`, `build:`, `style:`: no version. Use these when what users install stays the same.
+
+Renovate titles its updates `chore(deps):`, because the integration has no runtime dependencies, so they release nothing.
+
+The `Release` workflow (`.github/workflows/release.yml`) runs release-please on every push to `main`. It keeps a release PR open (`chore(main): release X.Y.Z`) with the next version and its `CHANGELOG.md` entry. Merging that PR by hand, when the version should go out, tags `vX.Y.Z` and publishes the GitHub release. The workflow uses a GitHub App token (`RELEASE_APP_CLIENT_ID` variable, `RELEASE_APP_PRIVATE_KEY` secret), not `GITHUB_TOKEN`, because a PR opened with `GITHUB_TOKEN` runs no workflows and the required checks (`Lint and pytest`, `Hassfest`, `HACS`, `Docs build`) would never report.
+
+- Don't edit `CHANGELOG.md`, `.release-please-manifest.json`, or the `version` in `manifest.json` by hand; release-please updates them in its release PR.
+- To correct a merged PR's type before its release, add the corrected message to that PR's description between a `BEGIN_COMMIT_OVERRIDE` line and an `END_COMMIT_OVERRIDE` line; release-please reads it instead of the commit. To force a version, end that message with a `Release-As: X.Y.Z` footer.
+- This project doesn't publish pre-releases. Don't force a version with a suffix such as `0.3.0-rc1`: it would go out to every user as a normal stable release. release-please's `prerelease` option can't prevent that here, because it would also flag every 0.x release.
+- Don't start a paragraph in a commit body with `feat:`, `fix:` or another type: release-please reads it as another commit.
 
 ## Security and Guardrails
 
