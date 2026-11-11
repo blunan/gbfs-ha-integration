@@ -215,8 +215,8 @@ Before finishing:
 ## GitHub
 
 - Always use Conventional Commits spec.
-- Do not commit generated coverage output, local environment files, personal configuration, secrets or credentials.
-- Keep pull requests focused and explain any intentional compatibility impact.
+- Never commit secrets, credentials, environment files, personal configuration, or build artifacts.
+- Keep pull requests focused and document any intentional compatibility changes.
 
 ### Versions and releases
 
@@ -239,8 +239,8 @@ The `Release` workflow (`.github/workflows/release.yml`) runs release-please on 
 ## Security and Guardrails
 
 - Never commit secrets, credentials, tokens, or private keys.
-- Validate untrusted input at appropriate boundaries.
-- Use parameterized queries and safe APIs for external input.
+- Always validate untrusted input at appropriate boundaries.
+- Always use parameterized queries and safe APIs for external input.
 - Avoid logging sensitive information.
-- Follow least-privilege principles.
-- Do not disable security controls to bypass errors.
+- Always follow least-privilege principles.
+- Never disable security controls to bypass errors.
