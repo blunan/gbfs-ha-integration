@@ -14,15 +14,15 @@ Custom integration that monitors stations from **any** bike-share system publish
 
 ## ✨ Features
 
-* 🖱️ **100% UI-based setup** — no YAML. Paste the `gbfs.json` URL and the integration discovers the station feeds, in your Home Assistant language when the system publishes several.
-* 🔀 **Every GBFS version** — 1.x, 2.x, and 3.0 feeds give the same sensors, with translated station names when the feed has them.
+* 🖱️ **100% UI-based setup** — no YAML. Paste the `gbfs.json` URL and the integration discovers station feeds, localized to your Home Assistant language when available.
+* 🔀 **Every GBFS version** — 1.x, 2.x, and 3.0 feeds provide identical sensors, with translated station names when published.
 * 🚲 **One device per station** with sensors for available bikes, e-bikes, docks, occupancy %, out-of-service bikes/docks, and last report time, plus renting/returning binary sensors.
-* 🧠 **Feed-aware entities** — optional sensors (e-bikes, disabled bikes/docks) are only created when the feed actually publishes those fields. E-bikes are counted directly or by vehicle type.
+* 🧠 **Feed-aware entities** — optional sensors (e-bikes, disabled bikes/docks) are created only when the feed publishes those fields. E-bikes are counted directly or by vehicle type.
 * 📡 **Efficient polling** — a single request to `station_status.json` every 60 s (or the feed's `ttl`, if longer) updates all your stations.
-* 📈 **Long-term statistics ready** — numeric sensors use `state_class: measurement`, so they work with HA statistics and InfluxDB/Grafana export.
-* 🗺️ **Map friendly** — the bikes sensor carries the station's latitude/longitude, so stations show up on the map card.
+* 📈 **Long-term statistics ready** — numeric sensors use `state_class: measurement`, supporting Home Assistant statistics and InfluxDB/Grafana export.
+* 🗺️ **Map friendly** — the bikes sensor includes station coordinates for native Map card markers.
 * 🔁 **Options flow** — add or remove stations at any time without reinstalling.
-* 🩺 **Diagnostics support** — download the entry's update state, published fields, and per-station data from **Devices & Services** for easy debugging.
+* 🩺 **Diagnostics support** — download entry configuration, update state, published fields, and raw station records from **Devices & Services**.
 * 🌐 **Translations** — English and Spanish.
 
 ## 📦 Installation
@@ -57,7 +57,7 @@ The [installation guide](https://gbfs-ha-integration.blunan.com/installation/) a
 2. Paste the auto-discovery URL of your bike-share system, e.g. Ecobici CDMX:
    `https://gbfs.mex.lyftbikes.com/gbfs/gbfs.json`
 3. Select your stations by name from the multi-select list.
-4. Done — each station appears as a device with its sensors. You can add or remove stations at any time via **Configure** on the integration entry.
+4. Done — each station appears as a device with its sensors. Add or remove stations anytime via **Configure** on the integration entry.
 
 ### 🔍 Finding Your System's GBFS Feed
 

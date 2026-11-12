@@ -16,7 +16,7 @@ from .conftest import GBFS_URL, GBFS_URL_V3
 
 
 def _station_labels(result: dict[str, Any]) -> list[str]:
-    """Labels of the station picker in a form, in display order."""
+    """Return station picker labels from form schema in display order."""
     selector = result["data_schema"].schema[CONF_STATIONS]
     return [option["label"] for option in selector.config["options"]]
 
@@ -96,7 +96,7 @@ async def test_cannot_connect(hass: HomeAssistant, aioclient_mock) -> None:
 
 
 async def test_invalid_feed(hass: HomeAssistant, aioclient_mock) -> None:
-    """A JSON that is not GBFS shows invalid_feed."""
+    """Non-GBFS JSON payload shows invalid_feed."""
     aioclient_mock.get(GBFS_URL, json={"hello": "world"})
 
     result = await hass.config_entries.flow.async_init(

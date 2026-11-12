@@ -5,7 +5,7 @@ cd "$(dirname "$0")/.."
 
 mkdir -p config
 
-# PYTHONPATH pto help HA find custom_components/gbfs from the repo
+# Set PYTHONPATH so Home Assistant finds custom_components/gbfs
 export PYTHONPATH="${PYTHONPATH}:${PWD}"
 
 hass --config "${PWD}/config" --debug

@@ -33,7 +33,7 @@ class GbfsSensorEntityDescription(SensorEntityDescription):
     """Description of a GBFS sensor entity."""
 
     value_fn: Callable[[StationStatus], StateType | datetime]
-    # Optional fields are only created if reported by at least one station
+    # Optional entities are only created if reported by at least one station
     optional: bool = False
     # Set on a single entity per station to avoid duplicate map markers
     has_location: bool = False
@@ -59,7 +59,7 @@ SENSORS: tuple[GbfsSensorEntityDescription, ...] = (
         translation_key="ebikes_available",
         state_class=SensorStateClass.MEASUREMENT,
         value_fn=lambda station: station.ebikes_available,
-        # Only created if the feed counts e-bikes
+        # Created only if the feed reports e-bike data
         optional=True,
     ),
     GbfsSensorEntityDescription(

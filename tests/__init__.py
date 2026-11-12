@@ -1,1 +1,1 @@
-"""Tests de la integración GBFS."""
+"""Tests for the GBFS integration."""

@@ -50,7 +50,7 @@ Periodic Polling (Every 60s or feed TTL)
 `resolve_feeds(discovery, language)` processes `gbfs.json` into a `{feed_name: url}` dictionary:
 
 - **GBFS 3.0:** Reads `data.feeds` directly.
-- **GBFS 1.x & 2.x:** Iterates `data.<lang>.feeds` dictionaries, selecting the block matching Home Assistant's language (matching primary subtag, e.g., `es` matches `es-MX`). Falls back to the first language listed if no match is found.
+- **GBFS 1.x & 2.x:** Iterates `data.<lang>.feeds` dictionaries, matching Home Assistant's primary language subtag (e.g., `es` matches `es-MX`). Falls back to the first listed language if none match.
 - Validates that required endpoints (`station_information` and `station_status`) are present, raising `InvalidFeed` if either is missing.
 
 ## Network Requests
@@ -78,7 +78,7 @@ The integration normalizes variations across GBFS specifications into a consiste
 
 - Evaluates renamed fields (`num_bikes_available` vs. 3.0 `num_vehicles_available`).
 - Converts `0`/`1` and boolean values into native Python booleans.
-- Resolves e-bikes from `num_ebikes_available` first; if absent, aggregates counts from `vehicle_types_available` matching identified e-bike IDs.
+- Resolves e-bikes from `num_ebikes_available` first; if absent, aggregates counts from `vehicle_types_available` matching identified e-bike types.
 
 ## DataUpdateCoordinator Implementation
 
@@ -102,8 +102,8 @@ Entities inherit from `GbfsEntity`, which extends Home Assistant's `CoordinatorE
 
 `async_remove_config_entry_device` in `__init__.py` allows users to remove station devices from the UI once unselected in options:
 
-- If a user attempts to delete an active, currently selected station device, the integration returns `False`, rejecting deletion because the device would be recreated on the next reload.
-- If the station is no longer in `entry.options["stations"]`, the integration returns `True`, cleanly purging the device and its entities from the registry.
+- Deleting an active, currently selected station device is rejected (`False`) because reload would recreate it.
+- If the station is unselected in `entry.options["stations"]`, the integration returns `True`, removing the device and its entities from the registry.
 
 ## Architectural Principles
 

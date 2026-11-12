@@ -48,18 +48,18 @@ When enabled, logs record network response times (`Finished fetching gbfs data i
 
 ## Startup Retries
 
-If initial connection to `gbfs.json` or `station_information.json` fails on Home Assistant startup, Home Assistant marks the entry as retrying and attempts reconnection with exponential backoff. The entry initializes automatically once the feed responds.
+If the initial connection to `gbfs.json` or `station_information.json` fails during startup, Home Assistant retries connection with exponential backoff. The entry initializes automatically once the feed responds.
 
 ## All Entities Are Unavailable
 
-Indicates that recent polling requests failed (operator server outage, network interruption, or HTTP errors):
+Occurs when recent polling requests fail (server outage, network interruption, or HTTP errors):
 
-- The integration continues polling at the normal interval. Entities automatically restore as soon as the feed responds.
-- Check debug logs for `Error fetching gbfs data`. When connection recovers, the log will record `Fetching gbfs data recovered`.
+- The integration continues polling at the normal interval and restores entities automatically once the feed responds.
+- Check debug logs for `Error fetching gbfs data`. When connection recovers, the log records `Fetching gbfs data recovered`.
 
 ## One Station Is Unavailable
 
-The operator omitted this specific station from the latest `station_status.json`. Bike-share operators often remove stations during maintenance, seasonal closures, or relocation:
+The operator omitted this station from `station_status.json`, typically due to maintenance, seasonal closure, or relocation:
 
 - The entities restore automatically once the operator includes the station in updates again.
 - If the station was permanently decommissioned, remove it via **Configure** on the integration entry.
@@ -73,7 +73,7 @@ The operator omitted this specific station from the latest `station_status.json`
 ## Sensor Is Missing
 
 - **E-bikes available:** Only created if the feed reports `num_ebikes_available` or defines e-bike types in `vehicle_types.json`.
-- **Disabled counts:** `bikes_disabled` and `docks_disabled` are only created if the operator publishes those fields.
+- **Disabled counts:** `bikes_disabled` and `docks_disabled` are created only if the operator publishes those fields.
 - **Operator updates:** If an operator recently added new fields, reload the integration via **⋮ → Reload** to discover them.
 
 ## Stations Missing from Selection or Renamed
@@ -86,7 +86,7 @@ Ensure you added the station's **Bikes available** (`_bikes_available`) entity t
 
 ## Stale or Delayed Values
 
-Station sensor values reflect the data published by the operator. Check the **Last reported** timestamp: if that timestamp is old, the operator's backend is not updating. The integration checks for updates every 60 seconds (or the feed's TTL).
+Station sensor values reflect data published by the operator. If the **Last reported** timestamp is old, the operator backend is not updating. The integration checks for updates every 60 seconds (or the feed's TTL).
 
 ## Removed Station Device Still Visible
 

@@ -71,7 +71,7 @@ def _pick_language[T](items: Iterable[tuple[Any, T]], language: str | None) -> T
 def resolve_feeds(
     discovery: dict[str, Any], language: str | None = None
 ) -> dict[str, str]:
-    """Resolve gbfs.json discovery payload to a feed name to URL mapping."""
+    """Resolve gbfs.json discovery payload to a feed-name-to-URL mapping."""
     data = discovery.get("data")
     if not isinstance(data, dict):
         raise InvalidFeed("gbfs.json does not contain the 'data' key")
@@ -144,7 +144,7 @@ def ebike_type_ids(vehicle_types: dict[str, Any]) -> set[str]:
 
 
 def _first(record: dict[str, Any], *fields: str) -> Any:
-    """Return value of the first matching field found in the record."""
+    """Return the value of the first matching field found in the record."""
     return next((record[field] for field in fields if field in record), None)
 
 

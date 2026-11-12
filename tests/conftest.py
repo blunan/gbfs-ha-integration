@@ -27,12 +27,12 @@ FEEDS_V3 = (
 
 
 def load_json_fixture(name: str) -> dict[str, Any]:
-    """Loads a JSON fixture from tests/fixtures."""
+    """Load a JSON fixture from tests/fixtures."""
     return json.loads((FIXTURES_DIR / name).read_text())
 
 
 def mock_v3_feeds(aioclient_mock, *, skip: tuple[str, ...] = ()) -> None:
-    """Mocks the GBFS 3.0 feed with fixture data, except the feeds in `skip`."""
+    """Mock the GBFS 3.0 feed with fixture data, except feeds in skip."""
     aioclient_mock.get(GBFS_URL_V3, json=load_json_fixture("gbfs_v3.json"))
     for feed in FEEDS_V3:
         if feed not in skip:
@@ -43,13 +43,13 @@ def mock_v3_feeds(aioclient_mock, *, skip: tuple[str, ...] = ()) -> None:
 
 @pytest.fixture(autouse=True)
 def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
-    """Allows loading custom_components in tests."""
+    """Allow loading custom_components in tests."""
     return
 
 
 @pytest.fixture
 def mock_feeds(aioclient_mock):
-    """Mocks the four GBFS feeds with fixture data."""
+    """Mock the four GBFS feeds with fixture data."""
     aioclient_mock.get(GBFS_URL, json=load_json_fixture("gbfs.json"))
     aioclient_mock.get(
         f"{FEED_BASE}/system_information.json",
@@ -68,7 +68,7 @@ def mock_feeds(aioclient_mock):
 
 @pytest.fixture
 def mock_feeds_v3(aioclient_mock):
-    """Mocks a GBFS 3.0 feed, with vehicle types, with fixture data."""
+    """Mock a GBFS 3.0 feed, including vehicle types, with fixture data."""
     mock_v3_feeds(aioclient_mock)
     return aioclient_mock
 

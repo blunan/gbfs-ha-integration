@@ -129,6 +129,8 @@ For new numeric measurements, choose Home Assistant device class, unit, and `sta
 - Keep README claims, docs, entity descriptions, translations, and actual implementation consistent.
 - Update architecture, supported-feed, entity, configuration, or troubleshooting pages when behavior changes.
 - Use concise examples that match current Home Assistant entity IDs and configuration.
+- Write documentation that is direct, scannable, and easy to read. Avoid wordiness, conversational filler, or over-explaining self-evident details.
+- Never sacrifice correctness, precision, or completeness for brevity. Keep all technical caveats, names, and requirements explicit.
 
 ## Development environment and commands
 
@@ -184,6 +186,7 @@ Do not claim checks passed unless they were actually run.
 - Python indentation: 4 spaces. JSON, YAML, and TOML indentation: 2 spaces. Use LF line endings.
 - Prefer clear typed functions and small parsing helpers. Keep version-specific parsing centralized.
 - Follow current Home Assistant APIs and established patterns already used in this integration; avoid speculative compatibility abstractions.
+- Keep comments and docstrings concise, readable, and direct. Explain the *why*, feed quirks, or non-obvious invariants rather than restating self-evident code. Avoid filler or over-explaining while preserving full correctness and edge-case clarity.
 
 ## Dependencies, CI, and releases
 
@@ -204,12 +207,13 @@ While editing:
 
 1. Keep feed-version compatibility and Home Assistant registry stability in mind.
 2. Update tests, translations, and docs alongside behavior changes.
-3. Do not add dependencies or change public entity IDs without a clear requirement.
+3. Keep all comments, docstrings, and documentation easy to read, concise, and technically accurate without over-explaining.
+4. Do not add dependencies or change public entity IDs without a clear requirement.
 
 Before finishing:
 
 1. Run relevant tests and lint/format checks when the environment permits.
-2. Review the diff for accidental changes, generated files, secrets, and stale comments.
+2. Review the diff for accidental changes, generated files, secrets, wordy documentation, and stale comments.
 3. Report exactly what changed and which checks were run; call out anything not run or any remaining uncertainty.
 
 ## GitHub
@@ -229,7 +233,7 @@ Before finishing:
 
 Renovate titles its updates `chore(deps):`, because the integration has no runtime dependencies, so they release nothing.
 
-The `Release` workflow (`.github/workflows/release.yml`) runs release-please on every push to `main`. It keeps a release PR open (`chore(main): release X.Y.Z`) with the next version and its `CHANGELOG.md` entry. Merging that PR by hand, when the version should go out, tags `vX.Y.Z` and publishes the GitHub release. The workflow uses a GitHub App token (`RELEASE_APP_CLIENT_ID` variable, `RELEASE_APP_PRIVATE_KEY` secret), not `GITHUB_TOKEN`, because a PR opened with `GITHUB_TOKEN` runs no workflows and the required checks (`Lint and pytest`, `Hassfest`, `HACS`, `Docs build`) would never report.
+The `Release` workflow (`.github/workflows/release.yml`) runs release-please on every push to `main`. It keeps a release PR open (`chore(main): release X.Y.Z`) with the next version and its `CHANGELOG.md` entry. Merging that PR manually tags `vX.Y.Z` and publishes the GitHub release. The workflow uses a GitHub App token (`RELEASE_APP_CLIENT_ID` variable, `RELEASE_APP_PRIVATE_KEY` secret), not `GITHUB_TOKEN`, because a PR opened with `GITHUB_TOKEN` runs no workflows and the required checks (`Lint and pytest`, `Hassfest`, `HACS`, `Docs build`) would never report.
 
 - Don't edit `CHANGELOG.md`, `.release-please-manifest.json`, or the `version` in `manifest.json` by hand; release-please updates them in its release PR.
 - To correct a merged PR's type before its release, add the corrected message to that PR's description between a `BEGIN_COMMIT_OVERRIDE` line and an `END_COMMIT_OVERRIDE` line; release-please reads it instead of the commit. To force a version, end that message with a `Release-As: X.Y.Z` footer.
