@@ -59,7 +59,7 @@ Once configured, the integration creates:
 - **One device per station selected**, named after the station.
 - **Live entities per station:** Sensors for available bikes, e-bikes (if supported), free docks, occupancy percentage, and last report time, alongside renting and returning binary sensors.
 
-Initial data updates immediately upon completion.
+Initial data updates immediately.
 
 ## Managing Stations { #change-stations }
 
@@ -73,7 +73,7 @@ When options are saved:
 
 - **Added stations** immediately create their device and entities.
 - **Removed stations** stop updating and are marked unavailable. Their entity IDs and historical statistics are preserved in case you re-add them later.
-- **Deleting removed devices permanently:** Open the removed station's device page and select **⋮ → Delete**. (Only unselected stations can be deleted; active stations will be restored on entry reload).
+- **Permanently deleting removed devices:** Open the unselected station's device page and select **⋮ → Delete**. (Active stations cannot be deleted while selected; they would be recreated on reload).
 
 ## Multiple Systems
 

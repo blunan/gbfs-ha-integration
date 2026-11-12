@@ -75,7 +75,7 @@ def test_resolve_feeds_invalid() -> None:
 @pytest.mark.parametrize(
     ("value", "language", "expected"),
     [
-        # GBFS 1.x/2.x: plain text, whatever the language
+        # GBFS 1.x/2.x: plain text regardless of language
         ("Station Alpha", "es", "Station Alpha"),
         # GBFS 3.0: the translation matching the primary language subtag
         (NAMES, "es", "Estación Alfa"),
@@ -124,7 +124,7 @@ def test_ebike_type_ids() -> None:
 
 
 def test_station_status_same_across_versions() -> None:
-    """A GBFS 2.x station and its 3.0 equivalent read the same."""
+    """A GBFS 2.x station and its 3.0 equivalent parse to identical status."""
     v2 = {
         "station_id": "1",
         "num_bikes_available": 9,

@@ -58,7 +58,7 @@ async def test_sensor_values_v3(
     assert hass.states.get("binary_sensor.station_alpha_renting").state == "on"
     assert hass.states.get("binary_sensor.station_alpha_returning").state == "on"
 
-    # Empty station: no e-bikes, unknown occupancy; its time has an offset
+    # Empty station: no e-bikes, unknown occupancy; timestamp includes timezone offset
     assert hass.states.get("sensor.station_beta_e_bikes_available").state == "0"
     assert hass.states.get("sensor.station_beta_occupancy").state == "unknown"
     assert (

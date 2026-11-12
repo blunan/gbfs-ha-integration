@@ -39,8 +39,8 @@ async def async_remove_config_entry_device(
 ) -> bool:
     """Allow deleting the device of a station that is no longer selected.
 
-    A selected station's device would be recreated on the next reload, so the
-    station must be unselected in the options flow first.
+    Selected station devices cannot be removed because reload would recreate
+    them. Unselect the station in options first.
     """
     selected = {
         station_identifier(entry.entry_id, station_id)

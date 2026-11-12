@@ -1,4 +1,4 @@
-"""Tests for removing the devices of GBFS stations."""
+"""Tests for removing GBFS station devices."""
 
 from __future__ import annotations
 
@@ -27,18 +27,18 @@ async def test_remove_device(
     assert device is not None
     client = await hass_ws_client(hass)
 
-    # Station 1 is selected: its device would come back with the next reload
+    # Station 1 is selected: its device would be recreated on reload
     response = await client.remove_device(device.id)
     assert not response["success"]
     assert device_registry.async_get(device.id) is not None
 
-    # Unselected, its entities are kept as unavailable...
+    # Once unselected, its entities become unavailable...
     hass.config_entries.async_update_entry(config_entry, options={CONF_STATIONS: ["2"]})
     await hass.async_block_till_done()
     entity_id = "sensor.station_alpha_bikes_available"
     assert hass.states.get(entity_id).state == "unavailable"
 
-    # ...until the device is deleted, which takes its entities with it
+    # ...until the device is deleted, removing its entities
     response = await client.remove_device(device.id)
     assert response["success"]
     await hass.async_block_till_done()
@@ -46,5 +46,5 @@ async def test_remove_device(
     assert entity_registry.async_get(entity_id) is None
     assert hass.states.get(entity_id) is None
 
-    # Station 2 is still selected and untouched
+    # Station 2 remains selected and active
     assert hass.states.get("sensor.station_beta_bikes_available").state == "0"

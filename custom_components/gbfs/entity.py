@@ -9,7 +9,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .coordinator import GbfsCoordinator, StationStatus
 
-# Default status when a station is absent from latest poll
+# Default status when a station is absent from the latest poll
 NO_STATUS = StationStatus()
 
 
