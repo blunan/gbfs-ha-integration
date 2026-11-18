@@ -4,10 +4,10 @@ Install GBFS using the method corresponding to your Home Assistant version.
 
 === "Marketplace (Home Assistant 2026.11+)"
 
-    1. Go to **Settings → Marketplace**.
+    1. Go to **Settings** > **Marketplace**.
     2. Select **Add from link** in the top right.
     3. Enter `blunan/gbfs-ha-integration` or `https://github.com/blunan/gbfs-ha-integration`, and select **Add**.
-    4. Select **GBFS**, click **Install**, and confirm.
+    4. Select **GBFS**, select **Install**, and confirm.
     5. Restart Home Assistant if prompted.
 
 === "HACS (Home Assistant 2026.3 – 2026.10)"
@@ -16,8 +16,8 @@ Install GBFS using the method corresponding to your Home Assistant version.
 
     Or install manually via HACS:
 
-    1. Open **HACS** and select **⋮ → Custom repositories** in the top right.
-    2. Enter `https://github.com/blunan/gbfs-ha-integration`, select category **Integration**, and click **Add**.
+    1. Open **HACS**, open the three-dots menu in the top right, and select **Custom repositories**.
+    2. Enter `https://github.com/blunan/gbfs-ha-integration`, select category **Integration**, and select **Add**.
     3. Search for **GBFS**, open it, and select **Download**.
     4. Restart Home Assistant.
 
@@ -28,12 +28,12 @@ Install GBFS using the method corresponding to your Home Assistant version.
 
         ```text
         config/
-        ├── configuration.yaml
-        └── custom_components/
-            └── gbfs/
-                ├── __init__.py
-                ├── manifest.json
-                └── …
+        |-- configuration.yaml
+        `-- custom_components/
+            `-- gbfs/
+                |-- __init__.py
+                |-- manifest.json
+                `-- ...
         ```
 
     3. Restart Home Assistant.
@@ -43,16 +43,16 @@ Install GBFS using the method corresponding to your Home Assistant version.
 
 ## Updates
 
-Both Marketplace and HACS notify you when a new release is available under **Settings → Updates**. Review the release notes and install the update as usual.
+Both Marketplace and HACS notify you when a new release is available under **Settings** > **Updates**. Review the release notes and install the update as usual.
 
 ## Uninstall
 
 To completely remove the integration:
 
-1. **Delete configured entries:** Go to **Settings → Devices & services → GBFS** and select **⋮ → Delete** on each configured feed entry. This removes all associated devices and entities.
+1. **Delete configured entries:** Go to **Settings** > **Devices & services** > **GBFS**, open the three-dots menu on each configured feed entry, and select **Delete**. This removes all associated devices and entities.
 2. **Remove integration files:**
-    - **Marketplace:** Open GBFS and select **⋮ → Uninstall** (or choose **Delete and uninstall** to perform step 1 automatically).
-    - **HACS:** Open GBFS and select **⋮ → Remove**.
+    - **Marketplace:** Open GBFS, open the three-dots menu, and select **Uninstall** (or **Delete and uninstall** to perform step 1 automatically).
+    - **HACS:** Open GBFS, open the three-dots menu, and select **Remove**.
     - **Manual:** Delete the `custom_components/gbfs/` directory.
 3. Restart Home Assistant.
 

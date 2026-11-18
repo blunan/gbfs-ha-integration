@@ -1,8 +1,8 @@
-# How It Works
+# How it works
 
 Technical overview of integration architecture, feed normalization, coordinator lifecycle, and entity design.
 
-## Code Map
+## Code map
 
 Integration source files live in `custom_components/gbfs/`:
 
@@ -20,13 +20,13 @@ Integration source files live in `custom_components/gbfs/`:
 | `strings.json`, `translations/` | UI and entity strings in English and Spanish |
 | `brand/` | Integration icon and branding assets |
 
-## Lifecycle Overview
+## Lifecycle overview
 
 ```text
 Config Flow (Setup)
-  1. User enters feed URL → fetch gbfs.json → resolve_feeds()
+  1. You enter the feed URL -> fetch gbfs.json -> resolve_feeds()
   2. Fetch station_information.json (station list) & system_information.json (title)
-  3. User selects stations → creates config entry
+  3. You select stations -> create config entry
 
 Entry Startup (Boot, Reload, or Options Change)
   1. GbfsCoordinator._async_setup():
@@ -45,7 +45,7 @@ Periodic Polling (Every 60s or feed TTL)
   2. Entities update state
 ```
 
-## Feed Discovery and Resolution
+## Feed discovery and resolution
 
 `resolve_feeds(discovery, language)` processes `gbfs.json` into a `{feed_name: url}` dictionary:
 
@@ -53,7 +53,7 @@ Periodic Polling (Every 60s or feed TTL)
 - **GBFS 1.x & 2.x:** Iterates `data.<lang>.feeds` dictionaries, matching Home Assistant's primary language subtag (e.g., `es` matches `es-MX`). Falls back to the first listed language if none match.
 - Validates that required endpoints (`station_information` and `station_status`) are present, raising `InvalidFeed` if either is missing.
 
-## Network Requests
+## Network requests
 
 `async_fetch_json(session, url)` handles HTTP requests using Home Assistant's shared aiohttp client session:
 
@@ -61,7 +61,7 @@ Periodic Polling (Every 60s or feed TTL)
 - Sets `content_type=None` when parsing JSON, accommodating operators that return JSON payloads with `text/plain` headers.
 - Network and HTTP errors raise `CannotConnect`; malformed or unexpected JSON raises `InvalidFeed`. Both inherit from `GbfsError`.
 
-## Multi-Version Data Normalization
+## Multi-version data normalization
 
 The integration normalizes variations across GBFS specifications into a consistent internal model:
 
@@ -72,7 +72,7 @@ The integration normalizes variations across GBFS specifications into a consiste
 | `ebike_type_ids(vehicle_types)` | Extracts IDs for vehicle types where `form_factor` is `bicycle`/`cargo_bicycle` and `propulsion_type` is `electric_assist`/`electric` |
 | `StationStatus.from_feed(record, ebike_types)` | Maps raw station records to typed `StationStatus` instances |
 
-### StationStatus Dataclass
+### StationStatus dataclass
 
 `StationStatus` is a frozen dataclass representing the normalized state of a single station:
 
@@ -80,7 +80,7 @@ The integration normalizes variations across GBFS specifications into a consiste
 - Converts `0`/`1` and boolean values into native Python booleans.
 - Resolves e-bikes from `num_ebikes_available` first; if absent, aggregates counts from `vehicle_types_available` matching identified e-bike types.
 
-## DataUpdateCoordinator Implementation
+## DataUpdateCoordinator implementation
 
 `GbfsCoordinator` coordinates polling of `station_status.json`:
 
@@ -89,7 +89,7 @@ The integration normalizes variations across GBFS specifications into a consiste
 - **Dynamic Polling Interval:** Defaults to 60 seconds. If `station_status.json` includes a valid integer `ttl` greater than 60 seconds, the coordinator dynamically extends its interval to match.
 - **Diagnostics Snapshot:** Retains raw unparsed status records and tracks all observed field names in `published_fields`.
 
-## Entity Design
+## Entity design
 
 Entities inherit from `GbfsEntity`, which extends Home Assistant's `CoordinatorEntity`:
 
@@ -98,14 +98,14 @@ Entities inherit from `GbfsEntity`, which extends Home Assistant's `CoordinatorE
 - **Feed-Aware Instantiation:** Entity descriptions include an `optional` attribute. Optional entities (such as e-bikes or disabled equipment counts) are only instantiated if at least one station in the system reports data for that field during initial setup.
 - **Map Positioning:** Only `bikes_available` sets `has_location=True`, adding `latitude` and `longitude` attributes from cached station metadata so map cards display exactly one marker per station.
 
-## Device Cleanup Validation
+## Device cleanup validation
 
-`async_remove_config_entry_device` in `__init__.py` allows users to remove station devices from the UI once unselected in options:
+`async_remove_config_entry_device` in `__init__.py` lets you remove station devices from the UI once you unselect them in options:
 
 - Deleting an active, currently selected station device is rejected (`False`) because reload would recreate it.
 - If the station is unselected in `entry.options["stations"]`, the integration returns `True`, removing the device and its entities from the registry.
 
-## Architectural Principles
+## Architectural principles
 
 - **Single Request per Poll:** Download `station_status.json` once per bike-share system, regardless of the number of selected stations.
 - **Zero Configuration Versioning:** Ingest GBFS 1.x, 2.x, and 3.0 feeds without requiring version flags from the user.
