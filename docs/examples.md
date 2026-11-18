@@ -1,12 +1,12 @@
-# Dashboards and Automations
+# Dashboards and automations
 
 Practical dashboard cards and automations using the integration's sensors.
 
 Replace the example entity IDs (`sensor.ce_003_reforma_insurgentes_...`) with your station's actual entities, which can be found on each station's device page.
 
-## Dashboard Cards
+## Dashboard cards
 
-### Stations on a Map { #map }
+### Stations on a map { #map }
 
 Plot stations on a Home Assistant Map card. Setting `label_mode: state` displays each station's live bike count directly on its marker:
 
@@ -24,7 +24,7 @@ default_zoom: 15
 !!! note "Coordinates"
     Only the **Bikes available** sensor carries coordinates, ensuring exactly one pin per station on the map.
 
-### Station Overview (Entities Card)
+### Station overview (entities card)
 
 Display all key metrics for a station in a single card:
 
@@ -48,9 +48,9 @@ entities:
     name: Last report
 ```
 
-### Station Occupancy Gauge
+### Station occupancy gauge
 
-A gauge highlighting extreme conditions — empty stations (no bikes to rent) or full stations (no docks to return):
+A gauge highlighting extreme conditions: empty stations (no bikes to rent) or full stations (no docks to return).
 
 ```yaml
 type: gauge
@@ -72,7 +72,7 @@ segments:
     color: "#db4437"
 ```
 
-### Weekly Usage Statistics Graph
+### Weekly usage statistics graph
 
 Track historical station availability using Home Assistant long-term statistics:
 
@@ -94,7 +94,7 @@ stat_types:
 
 Replace `notify.mobile_app_your_phone` with your mobile device's notify service or action.
 
-### Morning Commute Briefing
+### Morning commute briefing
 
 Send a notification every weekday morning with bike and dock counts:
 
@@ -115,7 +115,7 @@ actions:
         {{ states('sensor.ce_003_reforma_insurgentes_docks_available') }} free docks available.
 ```
 
-### Low Bike Availability Warning
+### Low bike availability warning
 
 Alert when station bike count drops below 3 during the morning rush:
 
@@ -139,7 +139,7 @@ actions:
         bikes left at Reforma - Insurgentes.
 ```
 
-### Rental Interruption Alert
+### Rental interruption alert
 
 Alert when a station goes out of service or halts rentals for more than 10 minutes:
 
@@ -157,9 +157,9 @@ actions:
       message: Reforma - Insurgentes is temporarily not renting bikes.
 ```
 
-### Stale Station Detection Helper { #stale-station }
+### Stale station detection helper { #stale-station }
 
-If a station stops reporting, its counts remain static at the last known values. To flag stale data, create a Template Binary Sensor helper in **Settings → Devices & services → Helpers → Create helper → Template → Template a binary sensor**:
+If a station stops reporting, its counts remain static at the last known values. To flag stale data, create a Template Binary Sensor helper in **Settings** > **Devices & services** > **Helpers** > **Create helper** > **Template** > **Template a binary sensor**:
 
 ```jinja
 {% set last = states('sensor.ce_003_reforma_insurgentes_last_reported') | as_datetime %}
@@ -168,10 +168,10 @@ If a station stops reporting, its counts remain static at the last known values.
 
 This sensor turns `on` if the station has not reported updates for over 30 minutes.
 
-### Neighborhood Bike Aggregation
+### Neighborhood bike aggregation
 
 To calculate the total number of bikes across nearby stations:
 
-1. Go to **Settings → Devices & services → Helpers**.
-2. Select **Create helper → Combine the state of several sensors**.
+1. Go to **Settings** > **Devices & services** > **Helpers**.
+2. Select **Create helper** > **Combine the state of several sensors**.
 3. Add the `bikes_available` entities of your nearby stations and set the statistic type to **Sum**.

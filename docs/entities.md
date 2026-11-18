@@ -2,7 +2,7 @@
 
 Each selected bike-share station becomes a device in Home Assistant equipped with availability sensors and status flags.
 
-## Station Device
+## Station device
 
 | Attribute | Value |
 |---|---|
@@ -22,7 +22,7 @@ Each selected bike-share station becomes a device in Home Assistant equipped wit
 | **Occupancy** | `_occupancy` | Percentage | Calculated | Station fullness percentage: `bikes / (bikes + docks) * 100`. |
 | **Last reported** | `_last_reported` | Timestamp | `last_reported` | Diagnostic timestamp showing when the station last reported to the operator. |
 
-## Binary Sensors
+## Binary sensors
 
 | Entity | Entity ID Suffix | Condition When On | GBFS Field |
 |---|---|---|---|
@@ -31,19 +31,19 @@ Each selected bike-share station becomes a device in Home Assistant equipped wit
 
 Both binary sensors handle 1.x integer flags (`0`/`1`) and 2.x/3.0 boolean values (`true`/`false`). An operator may permit returns while disabling rentals (e.g., during maintenance or rebalancing).
 
-## Occupancy Calculation { #occupancy }
+## Occupancy calculation { #occupancy }
 
 Occupancy indicates how full a station is, rounded to one decimal place:
 
 ```text
-Occupancy = Bikes available / (Bikes available + Docks available) × 100
+Occupancy = Bikes available / (Bikes available + Docks available) * 100
 ```
 
 - **0%**: No bikes available to rent.
 - **100%**: No free docks available for returns.
 - **Unknown state**: Set to `unknown` if a station has zero total capacity (e.g., closed stations reporting 0 bikes and 0 docks), or if the feed omits dock counts (such as valet stations or floating zones). Out-of-service bikes and docks are excluded from the calculation.
 
-## Diagnostic Timestamp: Last Reported { #last-reported }
+## Diagnostic timestamp: last reported { #last-reported }
 
 The **Last reported** sensor displays the timestamp of the station's last communication with the bike-share operator. If a station loses network connectivity, its counts may become stale while the operator continues serving the last known data.
 
@@ -51,17 +51,17 @@ The **Last reported** sensor displays the timestamp of the station's last commun
 - **Timezone requirement:** GBFS 3.0 timestamps without a timezone offset are ambiguous and display as `unknown`.
 - **Diagnostic category:** Categorized as a diagnostic entity, keeping auto-generated dashboards clean.
 
-## Map Location Attributes { #location }
+## Map location attributes { #location }
 
 The **Bikes available** sensor includes `latitude` and `longitude` attributes populated from `station_information.json`. Adding this entity to a Home Assistant Map card places a marker at the station's physical coordinates displaying its current bike count.
 
 Other station entities omit coordinates so each station generates a single marker on map cards.
 
-## Long-Term Statistics & History
+## Long-term statistics and history
 
-All count sensors and the occupancy sensor use `state_class: measurement`. Home Assistant automatically records long-term hourly statistics (mean, minimum, maximum), which persist after raw state history is purged. These sensors integrate seamlessly with Statistics Graph cards and database exports like InfluxDB.
+All count sensors and the occupancy sensor use `state_class: measurement`. Home Assistant automatically records long-term hourly statistics (mean, minimum, maximum), which persist after raw state history is purged. These sensors work with Statistics Graph cards and database exports like InfluxDB.
 
-## Entity State Behavior
+## Entity state behavior
 
 | Entity State | Cause |
 |---|---|
@@ -70,12 +70,12 @@ All count sensors and the occupancy sensor use `state_class: measurement`. Home 
 | **Unavailable** *(single station)* | Station is omitted from the operator's latest `station_status.json` (e.g., undergoing station maintenance or temporary closure). |
 | **Unavailable** *(all stations)* | Polling request failed (network timeout, HTTP error, or malformed JSON). Entities restore automatically on the next successful update. |
 
-## Polling Interval & Data Freshness
+## Polling interval and data freshness
 
 The integration polls `station_status.json` every **60 seconds**, or at the feed's specified `ttl` (cache duration) if greater than 60 seconds. A single request updates all configured stations for that feed simultaneously.
 
-## Names and Entity IDs { #names-and-entity-ids }
+## Names and entity IDs { #names-and-entity-ids }
 
 - **Display Names:** Combine the station name and entity name (e.g., *CE-003 Reforma - Insurgentes Bikes available*). Station names match your Home Assistant language when the feed publishes translations; otherwise, the operator's default name is used.
 - **Entity IDs:** Generated upon initial discovery from the station and entity names (e.g., `sensor.ce_003_reforma_insurgentes_bikes_available`). Once created, entity IDs remain stable even if station names are updated later.
-- **Finding Entities:** View all entities for a station on its device page under **Settings → Devices & services → Entities**.
+- **Finding Entities:** View all entities for a station on its device page under **Settings** > **Devices & services** > **Entities**.

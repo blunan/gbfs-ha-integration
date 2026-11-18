@@ -132,6 +132,21 @@ For new numeric measurements, choose Home Assistant device class, unit, and `sta
 - Write documentation that is direct, scannable, and easy to read. Avoid wordiness, conversational filler, or over-explaining self-evident details.
 - Never sacrifice correctness, precision, or completeness for brevity. Keep all technical caveats, names, and requirements explicit.
 
+### Docs formatting
+
+Follow these rules on every edit under `docs/`.
+
+- **Characters:** Latin letters, digits, common punctuation, typographic quotes and dashes only. No box drawing (`├──`), arrows (`→`, `►`) or symbols (`⋮`, `✔`): the brand fonts lack them, so they render in a fallback font and break code-block alignment.
+- **Diagrams:** ASCII in a `text` fence. Trees use `|--`, `` `-- `` and `|`; flows use `->`.
+- **Menu paths:** write **Settings** > **Devices & services**. Name icons in words ("the three-dots menu").
+- **Program output:** keep it ASCII, or paraphrase it.
+- **Code fences:** always name the language, using one name per language: `sh`, `js`, `yaml`, `python`, `json`, and `text` for output and diagrams. Never `bash`, `shell`, `javascript`, `yml`, `txt` or `py`.
+- **Callouts:** only `note`, `abstract`, `info`, `tip`, `success`, `question`, `warning`, `failure`, `danger`, `bug`, `example` and `quote`.
+- **Emphasis:** bold or italic, never both at once.
+- **Headings:** sentence case. Capitalize only the first word, proper nouns and acronyms. Proper nouns here: Home Assistant, GBFS, HACS, Marketplace, StationStatus and DataUpdateCoordinator.
+- **Page outline:** each page has one `#` title that equals its nav label (the home page uses the project name), a summary paragraph before the first `##`, and heading levels that never skip.
+- **Voice:** plain second person ("you"), steps as commands, present tense; contractions are fine. No filler words (please, simply, just, easy, easily) and no wordplay.
+
 ## Development environment and commands
 
 The documented development environment uses **Python 3.14**.

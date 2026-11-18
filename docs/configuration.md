@@ -1,6 +1,8 @@
 # Configuration
 
-## Find Your System's Feed { #find-your-feed }
+Find your system's feed URL, add the integration, and manage the stations you track.
+
+## Find your system's feed { #find-your-feed }
 
 Every GBFS feed publishes an auto-discovery file named `gbfs.json` that lists all related endpoints. This single URL is all the integration needs to discover and configure your stations.
 
@@ -12,7 +14,7 @@ To find your system's auto-discovery URL:
 - **[The Mobility Database](https://mobilitydatabase.org/feeds):** Searchable transit and micro-mobility catalog.
 - **City or operator open-data portals:** Check developer pages for local transit authorities.
 
-### Example Feeds
+### Example feeds
 
 | System | City | Version | Feed URL (`gbfs.json`) |
 |---|---|---|---|
@@ -22,19 +24,19 @@ To find your system's auto-discovery URL:
 | Vélib' Métropole | Paris | 1.0 | `https://velib-metropole-opendata.smovengo.cloud/opendata/Velib_Metropole/gbfs.json` |
 | Ecobici | Buenos Aires | 3.0 | `https://buenosaires.publicbikesystem.net/customer/gbfs/v3.0/gbfs.json` |
 
-## Add the Integration
+## Add the integration
 
 [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=gbfs)
 
-Or navigate to **Settings → Devices & services**, select **Add integration**, and search for **GBFS**.
+Or go to **Settings** > **Devices & services**, select **Add integration**, and search for **GBFS**.
 
-### Step 1: Feed URL
+### Step 1: feed URL
 
 Enter your system's `gbfs.json` URL and select **Submit**.
 
 The integration downloads the discovery file, locates the station information and status feeds, and fetches the system name. If the feed publishes multiple language options, the integration automatically matches your Home Assistant language.
 
-#### Setup Errors { #setup-errors }
+#### Setup errors { #setup-errors }
 
 If initial validation fails, the dialog displays one of the following errors:
 
@@ -44,14 +46,14 @@ If initial validation fails, the dialog displays one of the following errors:
 | **The URL does not point to a valid GBFS feed** | The response is not valid JSON, lacks required `station_information` or `station_status` endpoints, or reports zero stations. | Ensure you entered the root `gbfs.json` discovery URL (not a sub-feed like `station_status.json`) and that the system has physical docking stations. |
 | **This GBFS feed is already configured** | A config entry for this feed URL already exists. | Use **Configure** on the existing integration entry to select additional stations. |
 
-### Step 2: Station Selection
+### Step 2: station selection
 
-Select one or more stations from the alphabetized multi-select list and click **Submit**.
+Select one or more stations from the alphabetized multi-select list, then select **Submit**.
 
 !!! tip "Large systems"
     Major systems have hundreds or thousands of stations. Search by station name or code (e.g., *CE-003 Reforma - Insurgentes*) as shown in the operator's app.
 
-## What Gets Created
+## What gets created
 
 Once configured, the integration creates:
 
@@ -61,11 +63,11 @@ Once configured, the integration creates:
 
 Initial data updates immediately.
 
-## Managing Stations { #change-stations }
+## Managing stations { #change-stations }
 
 You can modify your tracked stations at any time without reinstalling:
 
-1. Go to **Settings → Devices & services → GBFS**.
+1. Go to **Settings** > **Devices & services** > **GBFS**.
 2. Select **Configure** on the integration entry.
 3. Check or uncheck stations in the list, then select **Submit**.
 
@@ -73,12 +75,12 @@ When options are saved:
 
 - **Added stations** immediately create their device and entities.
 - **Removed stations** stop updating and are marked unavailable. Their entity IDs and historical statistics are preserved in case you re-add them later.
-- **Permanently deleting removed devices:** Open the unselected station's device page and select **⋮ → Delete**. (Active stations cannot be deleted while selected; they would be recreated on reload).
+- **Permanently deleting removed devices:** Open the unselected station's device page, open the three-dots menu, and select **Delete**. (Active stations cannot be deleted while selected; they would be recreated on reload).
 
-## Multiple Systems
+## Multiple systems
 
 To track stations across different cities or networks, add the GBFS integration again with each system's `gbfs.json` URL. Each system creates an independent integration entry with its own devices and polling cycle.
 
-## Updating Station Metadata
+## Updating station metadata
 
-Station names, coordinates, and optional feature detection (such as e-bike counts) are loaded when the integration entry starts. If the operator renames or relocates stations, or starts publishing new fields, reload the entry via **⋮ → Reload** on the integration card.
+Station names, coordinates, and optional feature detection (such as e-bike counts) are loaded when the integration entry starts. If the operator renames or relocates stations, or starts publishing new fields, reload the entry: open the three-dots menu on the integration card and select **Reload**.
