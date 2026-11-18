@@ -14,6 +14,7 @@
     "source=${localEnv:HOME}/.claude.json,target=/home/vscode/.claude.json,type=bind"
   ],
   "features": {
+    // Needed by the claude-code feature, which installs the CLI with npm; the integration itself doesn't use Node.
     "ghcr.io/devcontainers/features/node:2": {},
     "ghcr.io/anthropics/devcontainer-features/claude-code:1": {}
   },
