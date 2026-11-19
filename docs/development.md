@@ -188,7 +188,7 @@ GitHub Actions runs automated checks on every pull request and push to `main`:
 
 [Renovate](https://docs.renovatebot.com/) manages dependency updates according to `renovate.json`:
 
-- Checks weekly (Mondays).
+- Checks monthly (first Thursday).
 - Minor and patch updates are grouped into a single pull request.
 - Pinned actions use immutable commit hashes.
 - Only releases at least 14 days old are proposed.

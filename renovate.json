@@ -3,9 +3,9 @@
   "extends": [
     "config:recommended",
     "group:allNonMajor",
-    "schedule:weekly",
     ":configMigration"
   ],
+  "schedule": ["* * 1-7 * 4"],
   "timezone": "America/Mexico_City",
   "minimumReleaseAge": "14 days",
   "internalChecksFilter": "strict",
