@@ -64,10 +64,10 @@
   --md-code-hl-operator-color: var(--brand-text-muted);
   --md-code-hl-punctuation-color: var(--brand-text-muted);
   --md-code-hl-variable-color: var(--brand-text-muted);
+  --md-code-hl-string-color: var(--brand-success);
+  --md-code-hl-number-color: var(--brand-accent-2);
+  --md-code-hl-constant-color: var(--brand-accent-2);
   --md-code-hl-name-color: var(--brand-text);
-  --md-code-hl-string-color: var(--brand-text);
-  --md-code-hl-number-color: var(--brand-text);
-  --md-code-hl-constant-color: var(--brand-text);
   --md-code-hl-function-color: var(--brand-text);
   --md-typeset-table-color: var(--brand-border);
   --md-footer-fg-color: var(--brand-text);
@@ -95,9 +95,15 @@
 [data-md-color-scheme="default"][data-md-color-accent="custom"],
 [data-md-color-scheme="slate"][data-md-color-accent="custom"] {
   --md-accent-fg-color: var(--brand-accent-2);
-  --md-accent-fg-color--transparent: color-mix(in srgb, var(--brand-accent-2) 10%, transparent);
+  --md-accent-fg-color--transparent: color-mix(in srgb, var(--brand-accent-2) 5%, transparent);
   --md-accent-bg-color: var(--brand-on-accent);
   --md-accent-bg-color--light: color-mix(in srgb, var(--brand-on-accent) 70%, transparent);
+}
+
+/* Literal constants (true, false, null) read as values: Material binds `.kc` to the name color */
+
+.md-typeset .highlight .kc {
+  color: var(--md-code-hl-number-color);
 }
 
 /* Calm header: raised surface instead of the classic variant's primary-colored bar */
@@ -125,13 +131,6 @@
   color: var(--brand-text);
 }
 
-/* Links in running text are underlined, so color is never the only cue */
-
-.md-typeset a:not(.headerlink) {
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
-}
-
 /* Controls the generators draw at low contrast: muted text, Ultraviolet or Amber on hover and focus */
 
 .md-typeset .headerlink {
@@ -157,11 +156,211 @@
   opacity: 1;
 }
 
-/* Focus: Amber, as on the site. `body[…]` outranks Material's `.md-typeset a.focus-visible` (polyfill class). */
+/* Focus: Amber, as on the site, as a 2px solid ring (WCAG 2.4.13; the generators draw a 1px `auto` outline).
+   `body[…]` outranks Material's `.md-typeset a.focus-visible` (polyfill class) and the toggle label's `auto` style. */
 
 body[data-md-color-scheme] :focus-visible,
-body[data-md-color-scheme] .focus-visible {
+body[data-md-color-scheme] .focus-visible,
+body[data-md-color-scheme] .md-option.focus-visible + label {
   outline-color: var(--brand-focus);
+  outline-style: solid;
+  outline-width: 2px;
+}
+
+/* Contrast (1.4.6): Material dims these to 70–75% or 12–32% tints, below 7:1 for text and 3:1 for icons */
+
+.md-source__facts {
+  opacity: 1;
+  color: var(--brand-text-muted);
+}
+
+.md-header__button:hover,
+.md-source:hover,
+.md-search__icon:hover,
+.md-footer__link:focus,
+.md-footer__link:hover,
+.md-banner__button:hover {
+  opacity: 1;
+}
+
+.md-tabs__link {
+  opacity: 1;
+  color: var(--brand-text-muted);
+}
+
+.md-tabs__item--active .md-tabs__link,
+.md-tabs__link:hover,
+.md-tabs__link:focus {
+  color: var(--brand-text);
+}
+
+.md-search__suggest,
+.md-typeset .md-content__button,
+.md-clipboard,
+.md-pagination__link svg {
+  color: var(--brand-text-muted);
+}
+
+.md-typeset .md-author--more {
+  background-color: var(--brand-raised);
+  color: var(--brand-text-muted);
+}
+
+.md-typeset .md-tag-icon::before,
+.md-annotation__index::after,
+.md-typeset .md-annotation-list li::before {
+  background-color: var(--brand-text-muted);
+}
+
+/* Hovered code links keep the code surface: Ultraviolet over any tint of it falls below 7:1 */
+
+.md-typeset a:focus code,
+.md-typeset a:hover code,
+.md-clipboard--inline:focus code,
+.md-clipboard--inline:hover code,
+.md-nav__link[for]:focus code,
+.md-nav__link[for]:hover code,
+.md-nav__link[href]:focus code,
+.md-nav__link[href]:hover code {
+  background-color: var(--md-code-bg-color);
+}
+
+/* Search field (desktop): the page background with a muted ring, instead of a translucent black or white wash */
+
+@media screen and (min-width: 60em) {
+  .md-search__form,
+  .md-search__form:hover {
+    background-color: var(--brand-bg);
+    box-shadow: inset 0 0 0 1px var(--brand-text-muted);
+  }
+}
+
+/* Current page and section (1.4.1): bold as well as Amber, so color is never the only cue */
+
+.md-nav__item--active > .md-nav__link,
+.md-nav__link--active,
+.md-tabs__item--active .md-tabs__link {
+  font-weight: 700;
+}
+
+/* Targets (2.5.5): at least 44 × 44 CSS px (2.2rem at Material's smallest root size) */
+
+.md-header__button,
+.md-header__button.md-logo {
+  margin: .1rem;
+  padding: .5rem;
+}
+
+@media screen and (min-width: 60em) {
+  .md-search__form {
+    height: 2.2rem;
+  }
+
+  .md-search__icon[for="__search"],
+  .md-search__options {
+    top: .5rem;
+  }
+}
+
+.md-search__options > .md-icon {
+  position: relative;
+}
+
+.md-search__icon::after {
+  content: "";
+  position: absolute;
+  inset: -.5rem;
+}
+
+.md-code__button {
+  position: relative;
+}
+
+.md-code__button::before {
+  content: "";
+  position: absolute;
+  top: calc(50% - 2.2rem / 2);
+  left: calc(50% - 2.2rem / 2);
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+.md-nav__link {
+  box-sizing: border-box;
+  min-height: 1.2rem;
+  margin-top: .15rem;
+  align-items: center;
+}
+
+@media screen and (min-width: 76.25em) {
+  .md-nav__title {
+    display: flex;
+    align-items: center;
+    min-height: 2.2rem;
+  }
+}
+
+.md-typeset .tabbed-labels > label {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  min-height: 2.2rem;
+}
+
+.md-typeset .tabbed-labels > label > [href]:first-child {
+  display: flex;
+  align-items: center;
+  min-height: 2.2rem;
+}
+
+[dir] .md-typeset details > summary {
+  padding-top: .6rem;
+  padding-bottom: .6rem;
+}
+
+[dir] .md-typeset details > summary::before,
+[dir] .md-typeset details > summary::after {
+  top: .6rem;
+}
+
+.md-typeset .tabbed-button {
+  position: relative;
+}
+
+.md-typeset .tabbed-button::before {
+  content: "";
+  position: absolute;
+  inset: calc((.9rem - 2.2rem) / 2);
+}
+
+.md-top {
+  padding-block: .5rem;
+}
+
+/* A table cell's only link reaches 44 px by taking over the cell's padding: the padding enlarges what it hit-tests,
+   the matching negative margin keeps its layout box, so rows keep Material's height and sentences don't move. */
+
+.md-typeset table:not([class]) :is(td, th) > a:only-child {
+  display: inline-block;
+  box-sizing: border-box;
+  min-width: 2.2rem;
+  margin: -.9375em -1.25em;
+  padding: .9375em 1.25em;
+}
+
+/* Image links are not inside a sentence: no inline exception */
+
+.md-typeset a:has(> img:only-child) {
+  display: inline-flex;
+  align-items: center;
+  min-width: 2.2rem;
+  min-height: 2.2rem;
+}
+
+/* Text blocks (1.4.8): a blank line 1.5× the 1.6 line height between paragraphs. Line length is met by reflow (G204). */
+
+.md-typeset p:not(.admonition-title) + p {
+  margin-top: 2.4em;
 }
 
 /* Callouts: status colors; 10% box tint (the modern variant tints boxes) and a 12% title tint */
