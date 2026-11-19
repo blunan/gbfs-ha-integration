@@ -273,7 +273,7 @@ python3 -m venv .venv-docs
 
 ### Docs formatting
 
-Follow these rules on every edit under `docs/`, including files embedded with `--8<--`.
+Follow these rules on every edit under `docs/`, including files embedded with `--8<--`. They keep pages consistent and inside fonts' character set.
 
 - **Characters:** Latin letters, digits, common punctuation, typographic quotes and dashes only. No box drawing (`├──`), arrows (`→`, `►`) or symbols (`⋮`, `✔`): the brand fonts lack them, so they render in a fallback font and break code-block alignment.
 - **Diagrams:** ASCII in a `text` fence. Trees use `|--`, `` `-- `` and `|`; flows use `->`.
