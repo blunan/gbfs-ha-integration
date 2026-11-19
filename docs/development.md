@@ -4,6 +4,8 @@ Guidelines for setting up a local development environment, running tests, contri
 
 ## Development setup
 
+Use the first option that works: the dev container, then a throwaway container, and a local toolchain only without Docker.
+
 ### Dev container (recommended)
 
 The dev container provides an isolated environment pre-configured with Python 3.14, Home Assistant test fixtures, and development tooling.
@@ -15,9 +17,21 @@ Requirements: [Docker](https://www.docker.com/) and VS Code with the [Dev Contai
 3. Wait for the container to install dependencies.
 4. Run `scripts/develop` in the container terminal to start Home Assistant at `http://localhost:8123`.
 
-### Local virtual environment
+### Throwaway container
 
-Alternatively, set up a local virtual environment with Python 3.14:
+With Docker but without the dev container, run the linters and tests in the dev container's image. The checkout is mounted read-only and copied inside, so nothing on your machine changes:
+
+```sh
+docker run --rm -v "$PWD:/src:ro" -w /work mcr.microsoft.com/devcontainers/python:3.14-trixie sh -c '
+  tar -C /src --exclude=.git --exclude=.venv --exclude=.venv-docs -cf - . | tar -xf - &&
+  scripts/setup && ruff check . && ruff format --check . && scripts/test'
+```
+
+`ruff check` and `ruff format --check` only report problems; `scripts/lint` fixes them in the dev container.
+
+### Local toolchain
+
+Without Docker, set up a local virtual environment with Python 3.14:
 
 ```sh
 python3.14 -m venv .venv
@@ -127,9 +141,19 @@ To add a new language, create `translations/<lang>.json` copied from `translatio
 
 ## Working on documentation
 
-The documentation site is built with Material for MkDocs.
+The documentation site is built with Material for MkDocs. Preview it in the first environment that works:
 
-To preview changes locally:
+1. **Dev container:** run the commands below; VS Code forwards port 8000.
+2. **Throwaway container:** without the dev container, preview it on the same Python version as CI (`python-version` in `.github/workflows/docs.yml`):
+
+    ```sh
+    docker run --rm -it -p 127.0.0.1:8000:8000 -v "$PWD:/work:ro" -w /work python:3.14-slim-trixie \
+      sh -c 'pip install -q --root-user-action=ignore --require-hashes -r docs/requirements.txt && mkdocs serve -a 0.0.0.0:8000'
+    ```
+
+    Browse to `http://127.0.0.1:8000`. To run the strict build in the container, use `mkdocs build --strict --site-dir /tmp/site`, since the checkout is mounted read-only.
+
+3. **Local toolchain:** run the commands below with Python 3.14.
 
 ```sh
 python3 -m venv .venv-docs
@@ -142,15 +166,6 @@ To validate links and formatting strictly (matching CI):
 ```sh
 .venv-docs/bin/mkdocs build --strict
 ```
-
-Without a local Python, preview it in a throwaway container on the same Python version as CI (`python-version` in `.github/workflows/docs.yml`):
-
-```sh
-docker run --rm -it -p 127.0.0.1:8000:8000 -v "$PWD:/work:ro" -w /work python:3.14-slim-trixie \
-  sh -c 'pip install -q --root-user-action=ignore --require-hashes -r docs/requirements.txt && mkdocs serve -a 0.0.0.0:8000'
-```
-
-Browse to `http://127.0.0.1:8000`. To run the strict build in the container, add `--site-dir /tmp/site`, since the checkout is mounted read-only.
 
 ### Updating documentation dependencies
 
