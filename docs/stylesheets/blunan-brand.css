@@ -171,6 +171,9 @@ body[data-md-color-scheme] .md-option.focus-visible + label {
 
 .md-source__facts {
   opacity: 1;
+}
+
+.md-header .md-source__facts {
   color: var(--brand-text-muted);
 }
 
