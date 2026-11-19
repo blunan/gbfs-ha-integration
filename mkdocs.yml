@@ -12,7 +12,7 @@ exclude_docs: |
 theme:
   name: material
   font: false                                  # system fonts (no Google Fonts requests)
-  favicon: assets/icon.png                     # copy of custom_components/gbfs/brand/icon.png
+  favicon: assets/favicon.svg                  # material/bicycle, the logo icon, filled Amber for light and dark tabs
   icon:
     logo: material/bicycle
     repo: fontawesome/brands/github
