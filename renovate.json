@@ -35,6 +35,11 @@
       "matchDatasources": ["docker"],
       "matchPackageNames": ["mcr.microsoft.com/**"],
       "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
+      "description": "The test plugin requires the matching Home Assistant version",
+      "matchPackageNames": ["homeassistant", "pytest-homeassistant"],
+      "groupName": "Home Assistant"
     }
   ]
 }

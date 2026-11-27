@@ -178,7 +178,7 @@ For new numeric measurements, choose Home Assistant device class, unit, and `sta
 
 ## Testing
 
-- Tests use pytest and `pytest-homeassistant-custom-component`.
+- Tests use pytest and `pytest-homeassistant`.
 - HTTP interactions must be mocked with the repository's `aioclient_mock` fixtures.
 - Reuse the existing GBFS 1.x/2.x and GBFS 3.0 fixture patterns (`mock_feeds`, `mock_feeds_v3`, and `config_entry`) where applicable.
 - Add regression tests for bug fixes; do not rely only on manual Home Assistant testing.

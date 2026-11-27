@@ -100,7 +100,7 @@ Run `scripts/lint` before committing changes.
 
 ## Testing
 
-The test suite runs on pytest using `pytest-homeassistant-custom-component`. All HTTP requests are mocked via `aioclient_mock`; tests make no real network calls.
+The test suite runs on pytest using `pytest-homeassistant`. All HTTP requests are mocked via `aioclient_mock`; tests make no real network calls.
 
 ```sh
 scripts/test                        # Run entire test suite

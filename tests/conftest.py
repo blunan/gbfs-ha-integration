@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant.common import MockConfigEntry
 
 from custom_components.gbfs.const import CONF_STATIONS, CONF_URL, DOMAIN
 
@@ -39,12 +39,6 @@ def mock_v3_feeds(aioclient_mock, *, skip: tuple[str, ...] = ()) -> None:
             aioclient_mock.get(
                 f"{FEED_BASE_V3}/{feed}.json", json=load_json_fixture(f"{feed}_v3.json")
             )
-
-
-@pytest.fixture(autouse=True)
-def auto_enable_custom_integrations(enable_custom_integrations: None) -> None:
-    """Allow loading custom_components in tests."""
-    return
 
 
 @pytest.fixture

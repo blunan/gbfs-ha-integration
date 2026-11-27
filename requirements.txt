@@ -1,6 +1,6 @@
 ruff==0.17.5
 colorlog==6.12.0
 homeassistant==2026.11.1
-# Unpinned on purpose: each release pins one exact homeassistant version
-# (betas included), so pip installs the release matching the pin above.
-pytest-homeassistant-custom-component
+# Each release requires the matching homeassistant version, so upgrade both
+# together. Pinned so pip can't backtrack to an incompatible old release.
+pytest-homeassistant==2026.11.1
