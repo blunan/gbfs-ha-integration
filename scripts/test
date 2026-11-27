@@ -3,4 +3,6 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-pytest "$@"
+# A bare `pytest` runs the dev container image's copy, which comes first on PATH,
+# instead of the pinned one.
+python3 -m pytest "$@"
